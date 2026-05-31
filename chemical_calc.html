@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>化学品消耗核算</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: "PingFang SC","Microsoft YaHei",sans-serif; background:#F5F5F5; color:#333; padding:16px; max-width:500px; margin:0 auto; }
+  h1 { text-align:center; font-size:20px; margin-bottom:4px; color:#1A1A2E; }
+  .sub { text-align:center; font-size:12px; color:#999; margin-bottom:16px; }
+
+  .card { background:#fff; border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+  .card h3 { font-size:14px; color:#1A1A2E; margin-bottom:12px; border-bottom:1px solid #EEE; padding-bottom:8px; }
+
+  .row { display:flex; gap:8px; margin-bottom:10px; align-items:center; }
+  .row label { flex:0 0 70px; font-size:13px; color:#666; text-align:right; }
+  .row input, .row select { flex:1; padding:8px 10px; border:1px solid #DDD; border-radius:8px; font-size:14px; }
+  .row .unit { flex:0 0 50px; font-size:12px; color:#999; }
+
+  .result { background:#1A1A2E; color:#fff; border-radius:12px; padding:16px; margin-top:12px; }
+  .result .big { font-size:36px; font-weight:700; text-align:center; }
+  .result .label { text-align:center; font-size:12px; color:#AAA; margin-bottom:12px; }
+  .result .grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; text-align:center; }
+  .result .grid .val { font-size:18px; font-weight:600; }
+  .result .grid .lbl { font-size:11px; color:#AAA; }
+
+  .btn { display:block; width:100%; padding:12px; border:none; border-radius:10px; font-size:15px; cursor:pointer; margin-top:8px; }
+  .btn-primary { background:#1A1A2E; color:#fff; }
+  .btn-outline { background:#fff; color:#1A1A2E; border:1px solid #DDD; }
+
+  .tabs { display:flex; gap:4px; margin-bottom:12px; }
+  .tab { flex:1; text-align:center; padding:8px; font-size:12px; border-radius:8px; background:#EEE; cursor:pointer; }
+  .tab.on { background:#1A1A2E; color:#fff; }
+
+  .section { display:none; }
+  .section.on { display:block; }
+
+  .output-line { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #EEE; font-size:13px; }
+  .output-line .v { font-weight:600; color:#1A1A2E; }
+
+  .warning { background:#FFF3CD; color:#856404; padding:10px; border-radius:8px; font-size:12px; margin-top:12px; }
+</style>
+</head>
+<body>
+
+<h1>造纸化学品核算</h1>
+<p class="sub">吨纸消耗 · 日用量 · 月用量</p>
+
+<!-- 纸机参数 -->
+<div class="card">
+  <h3>纸机参数</h3>
+  <div class="row"><label>纸种</label><input id="paperType" value="瓦楞纸"><span class="unit"></span></div>
+  <div class="row"><label>定量</label><input id="grammage" type="number" value="47"><span class="unit">g/m²</span></div>
+  <div class="row"><label>车速</label><input id="speed" type="number" value="1220"><span class="unit">m/min</span></div>
+  <div class="row"><label>幅宽</label><input id="width" type="number" value="5500"><span class="unit">mm</span></div>
+  <div class="output-line"><span>小时产量</span><span class="v" id="hourlyOut">--</span></div>
+  <div class="output-line"><span>日产量</span><span class="v" id="dailyOut">--</span></div>
+</div>
+
+<!-- 化学品添加方式 -->
+<div class="card">
+  <h3>化学品添加</h3>
+  <div class="row"><label>名称</label><input id="chemName" value="阳离子淀粉"><span class="unit"></span></div>
+
+  <div class="tabs">
+    <div class="tab on" onclick="switchTab('A')">kg/吨纸</div>
+    <div class="tab" onclick="switchTab('B')">流量+浓度</div>
+    <div class="tab" onclick="switchTab('C')">对纤维%</div>
+  </div>
+
+  <div id="secA" class="section on">
+    <div class="row"><label>添加率</label><input id="rateA" type="number" value="12"><span class="unit">kg/吨纸</span></div>
+  </div>
+  <div id="secB" class="section">
+    <div class="row"><label>流量</label><input id="flowB" type="number" value="5"><span class="unit">L/min</span></div>
+    <div class="row"><label>浓度</label><input id="concB" type="number" value="15"><span class="unit">%</span></div>
+  </div>
+  <div id="secC" class="section">
+    <div class="row"><label>添加率</label><input id="rateC" type="number" value="1.2"><span class="unit">%纤维</span></div>
+  </div>
+
+  <button class="btn btn-primary" onclick="calc()">计算</button>
+</div>
+
+<!-- 结果 -->
+<div class="card result" id="resultCard">
+  <div class="label" id="chemLabel">阳离子淀粉</div>
+  <div class="big" id="perTon">--</div>
+  <div class="label">kg / 吨纸</div>
+  <div class="grid">
+    <div><div class="val" id="dailyKg">--</div><div class="lbl">日用量 kg</div></div>
+    <div><div class="val" id="dailyTon">--</div><div class="lbl">日用量 吨</div></div>
+    <div><div class="val" id="monthlyTon">--</div><div class="lbl">月用量 吨</div></div>
+  </div>
+</div>
+
+<div class="card" style="text-align:center;">
+  <p style="font-size:12px;color:#999;">支持任意纸种 · 任意化学品</p>
+</div>
+
+<script>
+let currentTab = 'A';
+
+function switchTab(t) {
+  currentTab = t;
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('on'));
+  event.target.classList.add('on');
+  document.querySelectorAll('.section').forEach(el => el.classList.remove('on'));
+  document.getElementById('sec' + t).classList.add('on');
+}
+
+function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function calcOutput() {
+  let g = getVal('grammage'), s = getVal('speed'), w = getVal('width');
+  let hourly = s * (w/1000) * g * 60 / 1000000;
+  let daily = hourly * 24;
+  document.getElementById('hourlyOut').textContent = hourly.toFixed(1) + ' t/h';
+  document.getElementById('dailyOut').textContent = daily.toFixed(1) + ' t/d';
+  return {hourly, daily};
+}
+
+function calc() {
+  let {hourly, daily} = calcOutput();
+  let chem = document.getElementById('chemName').value || '化学品';
+  document.getElementById('chemLabel').textContent = chem;
+
+  let perTon, dailyKg, dailyTon, monthlyTon;
+
+  if (currentTab === 'A') {
+    let rate = getVal('rateA');
+    perTon = rate;
+    dailyKg = perTon * daily;
+    dailyTon = dailyKg / 1000;
+    monthlyTon = dailyTon * 30;
+  } else if (currentTab === 'B') {
+    let flow = getVal('flowB'), conc = getVal('concB');
+    let hourlyKg = flow * (conc/100) * 1.0 * 60;
+    perTon = hourlyKg / hourly;
+    dailyKg = perTon * daily;
+    dailyTon = dailyKg / 1000;
+    monthlyTon = dailyTon * 30;
+  } else {
+    let rate = getVal('rateC');
+    perTon = 1000 * (rate/100);
+    dailyKg = perTon * daily;
+    dailyTon = dailyKg / 1000;
+    monthlyTon = dailyTon * 30;
+  }
+
+  document.getElementById('perTon').textContent = perTon.toFixed(2);
+  document.getElementById('dailyKg').textContent = dailyKg.toFixed(0);
+  document.getElementById('dailyTon').textContent = dailyTon.toFixed(1);
+  document.getElementById('monthlyTon').textContent = monthlyTon.toFixed(1);
+
+  // 闪烁效果
+  document.getElementById('resultCard').style.transform = 'scale(1.02)';
+  setTimeout(() => document.getElementById('resultCard').style.transform = '', 200);
+}
+
+// 初始计算
+calcOutput();
+calc();
+</script>
+</body>
+</html>
