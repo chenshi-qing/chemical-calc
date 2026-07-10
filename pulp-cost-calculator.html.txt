@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>华泰造纸成本计算器 V1.0</title>
+<style>
+  :root{
+    --bg:#e8e3d8;
+    --paper:#f6f3ea;
+    --ink:#2b2a26;
+    --ink-soft:#5a564c;
+    --teal:#1f5c56;
+    --teal-deep:#123a36;
+    --rust:#a8532f;
+    --line:#c9c2b0;
+    --good:#2f6d3f;
+    --warn:#a8532f;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  .mono{font-family:"SFMono-Regular",Consolas,"Courier New",monospace;font-variant-numeric:tabular-nums;}
+
+  .wrap{max-width:520px;margin:0 auto;padding:0 0 48px;}
+
+  header{
+    background:linear-gradient(180deg,var(--teal-deep),var(--teal));
+    color:#f2efe4;
+    padding:28px 20px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;right:-30px;top:-30px;width:140px;height:140px;
+    border:1px solid rgba(242,239,228,.15);border-radius:50%;
+  }
+  header::before{
+    content:"";
+    position:absolute;right:10px;bottom:-40px;width:100px;height:100px;
+    border:1px solid rgba(242,239,228,.12);border-radius:50%;
+  }
+  .eyebrow{font-size:12px;letter-spacing:.14em;opacity:.75;text-transform:uppercase;margin-bottom:6px;}
+  h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.01em;}
+  .sub{margin-top:6px;font-size:12.5px;opacity:.78;line-height:1.5;}
+
+  section.card{
+    background:var(--paper);
+    margin:14px 16px 0;
+    border-radius:10px;
+    border:1px solid var(--line);
+    box-shadow:0 1px 2px rgba(0,0,0,.04);
+    overflow:hidden;
+  }
+  .card-head{
+    padding:13px 16px 10px;
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:baseline;justify-content:space-between;
+  }
+  .card-head h2{margin:0;font-size:14px;font-weight:700;color:var(--teal-deep);letter-spacing:.02em;}
+  .card-head .tag{font-size:10.5px;color:var(--ink-soft);}
+
+  .field-grid{padding:10px 16px 16px;}
+  .field{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line);}
+  .field:last-child{border-bottom:none;}
+  .field label{font-size:13.5px;color:var(--ink);flex:1;}
+  .field .unit{font-size:11.5px;color:var(--ink-soft);margin-left:6px;}
+  .field input{
+    width:96px;text-align:right;
+    border:1px solid var(--line);border-radius:6px;
+    padding:7px 9px;font-size:15px;background:#fff;color:var(--ink);
+  }
+  .field input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px rgba(31,92,86,.12);}
+
+  .btn-row{padding:2px 16px 16px;}
+  .btn{
+    width:100%;padding:12px;border:none;border-radius:8px;
+    background:var(--teal);color:#f4f2e8;font-size:15px;font-weight:700;
+    letter-spacing:.02em;
+  }
+  .btn:active{background:var(--teal-deep);}
+
+  .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
+    border-top:1px solid var(--line);}
+  .result-cell{background:var(--paper);padding:14px 16px;}
+  .result-cell .label{font-size:11.5px;color:var(--ink-soft);margin-bottom:4px;}
+  .result-cell .value{font-size:19px;font-weight:700;color:var(--teal-deep);}
+  .result-cell .value .u{font-size:12px;font-weight:400;color:var(--ink-soft);margin-left:2px;}
+  .result-cell.hi .value{color:var(--rust);}
+
+  .diff{font-size:11px;margin-top:3px;}
+  .diff.up{color:var(--warn);}
+  .diff.down{color:var(--good);}
+
+  .basis{padding:14px 16px 6px;}
+  .basis-toggle{
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;user-select:none;padding-bottom:8px;
+  }
+  .basis-toggle .icon{font-size:12px;color:var(--ink-soft);transition:transform .15s;}
+  .basis-toggle.open .icon{transform:rotate(90deg);}
+  .basis-body{display:none;padding-bottom:10px;}
+  .basis-body.show{display:block;}
+
+  .step{
+    padding:9px 0;border-bottom:1px solid var(--line);
+  }
+  .step:last-child{border-bottom:none;}
+  .step .n{font-size:11px;color:var(--teal);font-weight:700;letter-spacing:.04em;}
+  .step .desc{font-size:12.5px;color:var(--ink-soft);margin:2px 0 4px;}
+  .step .calc{font-size:13.5px;color:var(--ink);background:#efece0;border-radius:5px;padding:6px 9px;}
+  .step .calc .eq{color:var(--ink-soft);}
+  .step .calc .res{color:var(--teal-deep);font-weight:700;}
+
+  .sens{padding:2px 16px 16px;}
+  .sens-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 12px;background:#efece0;border-radius:7px;margin-bottom:8px;
+  }
+  .sens-row .t{font-size:12.5px;color:var(--ink);}
+  .sens-row .v{font-size:14px;font-weight:700;color:var(--rust);}
+
+  .compare{padding:2px 16px 16px;}
+  .compare-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line);}
+  .compare-row:last-child{border-bottom:none;}
+  .compare-row .k{color:var(--ink-soft);}
+  .compare-row .v{font-weight:700;}
+  .empty-hint{font-size:12px;color:var(--ink-soft);padding:6px 0;}
+
+  .std-note{
+    margin:16px 16px 0;padding:10px 14px;
+    background:#efece0;border-left:3px solid var(--teal);
+    font-size:11.5px;color:var(--ink-soft);line-height:1.6;border-radius:0 6px 6px 0;
+  }
+  footer{text-align:center;font-size:11px;color:var(--ink-soft);padding:20px 16px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">华泰造纸 · 成本核算工具</div>
+    <h1>吨纸浆成本计算器</h1>
+    <div class="sub">物料平衡法 · 计算结果与核算依据同屏展示 · 离线可用</div>
+  </header>
+
+  <section class="card">
+    <div class="card-head"><h2>输入参数</h2><span class="tag">V1.0</span></div>
+    <div class="field-grid">
+      <div class="field">
+        <label>浆价</label>
+        <div><input type="number" id="pulpPrice" value="2650" inputmode="decimal"><span class="unit">元/吨</span></div>
+      </div>
+      <div class="field">
+        <label>浆灰分</label>
+        <div><input type="number" id="ashPulp" value="5" step="0.1" inputmode="decimal"><span class="unit">%</span></div>
+      </div>
+      <div class="field">
+        <label>风干度</label>
+        <div><input type="number" id="airDry" value="90" step="0.1" inputmode="decimal"><span class="unit">%</span></div>
+      </div>
+      <div class="field">
+        <label>成纸灰分</label>
+        <div><input type="number" id="ashPaper" value="17" step="0.1" inputmode="decimal"><span class="unit">%</span></div>
+      </div>
+      <div class="field">
+        <label>成纸水分</label>
+        <div><input type="number" id="moisture" value="7.5" step="0.1" inputmode="decimal"><span class="unit">%</span></div>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn" onclick="calc()">计算</button></div>
+  </section>
+
+  <section class="card" id="resultCard" style="display:none;">
+    <div class="card-head"><h2>计算结果</h2><span class="tag">按1吨成纸</span></div>
+    <div class="result-grid">
+      <div class="result-cell hi"><div class="label">吨纸耗浆</div><div class="value" id="rDosage">-<span class="u">吨</span></div></div>
+      <div class="result-cell hi"><div class="label">吨纸浆成本</div><div class="value" id="rCost">-<span class="u">元</span></div></div>
+      <div class="result-cell"><div class="label">纤维量</div><div class="value" id="rFiber">-<span class="u">kg</span></div></div>
+      <div class="result-cell"><div class="label">填料量</div><div class="value" id="rFiller">-<span class="u">kg</span></div></div>
+    </div>
+
+    <div class="basis">
+      <div class="basis-toggle open" id="basisToggle" onclick="toggleBasis()">
+        <h2 style="margin:0;font-size:13.5px;color:var(--teal-deep);">📖 核算依据（物料平衡法）</h2>
+        <span class="icon">▶</span>
+      </div>
+      <div class="basis-body show" id="basisBody"></div>
+    </div>
+  </section>
+
+  <section class="card" id="sensCard" style="display:none;">
+    <div class="card-head"><h2>📊 敏感性分析</h2></div>
+    <div class="sens" id="sensBody"></div>
+  </section>
+
+  <section class="card" id="compareCard" style="display:none;">
+    <div class="card-head"><h2>📈 与上次计算对比</h2></div>
+    <div class="compare" id="compareBody"></div>
+  </section>
+
+  <div class="std-note">
+    灰分测定依据 GB/T 742 系列国家标准（造纸原料、纸浆、纸和纸板灰分测定法）。本工具按物料平衡法核算，实际生产建议结合抄前化验数据校核。
+  </div>
+
+  <footer>华泰造纸成本计算器 V1.0 · 单文件离线工具</footer>
+</div>
+
+<script>
+let lastResult = null;
+let hasStorage = false;
+try {
+  localStorage.setItem('__t','1'); localStorage.removeItem('__t'); hasStorage = true;
+} catch(e){ hasStorage = false; }
+
+function loadLast(){
+  if(!hasStorage) return null;
+  try{
+    const s = localStorage.getItem('huatai_last_calc');
+    return s ? JSON.parse(s) : null;
+  }catch(e){ return null; }
+}
+function saveLast(obj){
+  if(!hasStorage) return;
+  try{ localStorage.setItem('huatai_last_calc', JSON.stringify(obj)); }catch(e){}
+}
+
+function fmt(n, d=1){ return Number(n).toFixed(d); }
+
+function compute(price, ashPulp, airDry, ashPaper, moisture){
+  const dryPaper   = 1000 * (1 - moisture/100);
+  const fiber      = dryPaper * (1 - ashPaper/100);
+  const dryPulp    = fiber / (1 - ashPulp/100);
+  const airDryPulp = dryPulp / (airDry/100);
+  const cost       = airDryPulp * price / 1000;
+  const fillerInPaper = dryPaper * ashPaper/100;
+  const fillerInPulp  = dryPulp * ashPulp/100;
+  const filler = fillerInPaper - fillerInPulp;
+  return { dryPaper, fiber, dryPulp, airDryPulp, cost, filler, price, ashPulp, airDry, ashPaper, moisture };
+}
+
+function toggleBasis(){
+  document.getElementById('basisToggle').classList.toggle('open');
+  document.getElementById('basisBody').classList.toggle('show');
+}
+
+function renderBasis(r){
+  const dosageTon = r.airDryPulp/1000;
+  return `
+    <div class="step">
+      <div class="n">STEP 1 · 绝干纸</div>
+      <div class="desc">成纸1吨，水分 ${fmt(r.moisture)}%</div>
+      <div class="calc"><span class="eq">1000 × (1 − ${fmt(r.moisture)}%) =</span> <span class="res">${fmt(r.dryPaper)} kg</span></div>
+    </div>
+    <div class="step">
+      <div class="n">STEP 2 · 纤维量</div>
+      <div class="desc">成纸灰分 ${fmt(r.ashPaper)}%，纤维占 ${fmt(100-r.ashPaper)}%</div>
+      <div class="calc"><span class="eq">${fmt(r.dryPaper)} × ${fmt(100-r.ashPaper)}% =</span> <span class="res">${fmt(r.fiber)} kg</span></div>
+    </div>
+    <div class="step">
+      <div class="n">STEP 3 · 绝干浆</div>
+      <div class="desc">浆灰分 ${fmt(r.ashPulp)}%，浆纤维含量 ${fmt(100-r.ashPulp)}%</div>
+      <div class="calc"><span class="eq">${fmt(r.fiber)} ÷ ${fmt(100-r.ashPulp)}% =</span> <span class="res">${fmt(r.dryPulp)} kg</span></div>
+    </div>
+    <div class="step">
+      <div class="n">STEP 4 · 风干浆</div>
+      <div class="desc">风干度 ${fmt(r.airDry)}%</div>
+      <div class="calc"><span class="eq">${fmt(r.dryPulp)} ÷ ${fmt(r.airDry)}% =</span> <span class="res">${fmt(r.airDryPulp)} kg（${fmt(dosageTon,3)} 吨）</span></div>
+    </div>
+    <div class="step">
+      <div class="n">STEP 5 · 浆成本</div>
+      <div class="desc">浆价 ${fmt(r.price,0)} 元/吨</div>
+      <div class="calc"><span class="eq">${fmt(r.airDryPulp)} × ${fmt(r.price,0)} ÷ 1000 =</span> <span class="res">${fmt(r.cost,0)} 元</span></div>
+    </div>
+    <div class="step">
+      <div class="n">STEP 6 · 填料量</div>
+      <div class="desc">成纸带入灰分 − 浆带入灰分</div>
+      <div class="calc"><span class="eq">${fmt(r.dryPaper)}×${fmt(r.ashPaper)}% − ${fmt(r.dryPulp)}×${fmt(r.ashPulp)}% =</span> <span class="res">${fmt(r.filler)} kg</span></div>
+    </div>
+  `;
+}
+
+function renderSens(r){
+  const rAshUp = compute(r.price, r.ashPulp, r.airDry, r.ashPaper+1, r.moisture);
+  const ashDelta = rAshUp.cost - r.cost;
+  const rPriceUp = compute(r.price+100, r.ashPulp, r.airDry, r.ashPaper, r.moisture);
+  const priceDelta = rPriceUp.cost - r.cost;
+  const rAirDryUp = compute(r.price, r.ashPulp, r.airDry+1, r.ashPaper, r.moisture);
+  const airDryDelta = rAirDryUp.cost - r.cost;
+
+  return `
+    <div class="sens-row"><div class="t">成纸灰分每升高 1%，吨纸成本</div><div class="v">${ashDelta<=0?'↓':'↑'} ${fmt(Math.abs(ashDelta),0)} 元</div></div>
+    <div class="sens-row"><div class="t">浆价每上涨 100 元/吨，吨纸成本</div><div class="v">↑ ${fmt(Math.abs(priceDelta),0)} 元</div></div>
+    <div class="sens-row"><div class="t">风干度每提高 1%，吨纸成本</div><div class="v">${airDryDelta<=0?'↓':'↑'} ${fmt(Math.abs(airDryDelta),0)} 元</div></div>
+  `;
+}
+
+function renderCompare(cur, prev){
+  if(!prev){
+    return `<div class="empty-hint">首次计算，暂无历史结果可比对。</div>`;
+  }
+  const dCost = cur.cost - prev.cost;
+  const dDosage = cur.airDryPulp/1000 - prev.airDryPulp/1000;
+  const sign = v => v>0 ? `<span class="diff up">↑ ${fmt(Math.abs(v),2)}</span>` : (v<0 ? `<span class="diff down">↓ ${fmt(Math.abs(v),2)}</span>` : `<span class="diff">持平</span>`);
+  return `
+    <div class="compare-row"><div class="k">吨纸浆成本</div><div class="v">${fmt(cur.cost,0)} 元 ${sign(dCost)}</div></div>
+    <div class="compare-row"><div class="k">吨纸耗浆</div><div class="v">${fmt(cur.airDryPulp/1000,3)} 吨 ${sign(dDosage)}</div></div>
+    <div class="compare-row"><div class="k">上次浆价</div><div class="v mono">${fmt(prev.price,0)} 元/吨</div></div>
+  `;
+}
+
+function calc(){
+  const price   = parseFloat(document.getElementById('pulpPrice').value)||0;
+  const ashPulp = parseFloat(document.getElementById('ashPulp').value)||0;
+  const airDry  = parseFloat(document.getElementById('airDry').value)||0;
+  const ashPaper= parseFloat(document.getElementById('ashPaper').value)||0;
+  const moisture= parseFloat(document.getElementById('moisture').value)||0;
+
+  const r = compute(price, ashPulp, airDry, ashPaper, moisture);
+
+  document.getElementById('rDosage').innerHTML = fmt(r.airDryPulp/1000,3) + '<span class="u">吨</span>';
+  document.getElementById('rCost').innerHTML = fmt(r.cost,0) + '<span class="u">元</span>';
+  document.getElementById('rFiber').innerHTML = fmt(r.fiber,0) + '<span class="u">kg</span>';
+  document.getElementById('rFiller').innerHTML = fmt(r.filler,0) + '<span class="u">kg</span>';
+  document.getElementById('resultCard').style.display = 'block';
+
+  document.getElementById('basisBody').innerHTML = renderBasis(r);
+
+  document.getElementById('sensBody').innerHTML = renderSens(r);
+  document.getElementById('sensCard').style.display = 'block';
+
+  const prev = loadLast();
+  document.getElementById('compareBody').innerHTML = renderCompare(r, prev);
+  document.getElementById('compareCard').style.display = 'block';
+
+  saveLast(r);
+  lastResult = r;
+}
+
+// auto-run once with default values on load
+window.addEventListener('load', calc);
+</script>
+</body>
+</html>
