@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>华泰造纸 · 废纸制浆成本计算器 V2.1</title>
+<style>
+  :root{
+    --bg:#e8e3d8;
+    --paper:#f6f3ea;
+    --ink:#2b2a26;
+    --ink-soft:#5a564c;
+    --teal:#1f5c56;
+    --teal-deep:#123a36;
+    --rust:#a8532f;
+    --line:#c9c2b0;
+    --good:#2f6d3f;
+    --warn:#a8532f;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  .mono{font-family:"SFMono-Regular",Consolas,"Courier New",monospace;font-variant-numeric:tabular-nums;}
+
+  .wrap{max-width:520px;margin:0 auto;padding:0 0 48px;}
+
+  header{
+    background:linear-gradient(180deg,var(--teal-deep),var(--teal));
+    color:#f2efe4;
+    padding:28px 20px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;right:-30px;top:-30px;width:140px;height:140px;
+    border:1px solid rgba(242,239,228,.15);border-radius:50%;
+  }
+  header::before{
+    content:"";
+    position:absolute;right:10px;bottom:-40px;width:100px;height:100px;
+    border:1px solid rgba(242,239,228,.12);border-radius:50%;
+  }
+  .eyebrow{font-size:12px;letter-spacing:.14em;opacity:.75;text-transform:uppercase;margin-bottom:6px;}
+  h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.01em;}
+  .sub{margin-top:6px;font-size:12.5px;opacity:.78;line-height:1.5;}
+
+  section.card{
+    background:var(--paper);
+    margin:14px 16px 0;
+    border-radius:10px;
+    border:1px solid var(--line);
+    box-shadow:0 1px 2px rgba(0,0,0,.04);
+    overflow:hidden;
+  }
+  .card-head{
+    padding:13px 16px 10px;
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:baseline;justify-content:space-between;
+  }
+  .card-head h2{margin:0;font-size:14px;font-weight:700;color:var(--teal-deep);letter-spacing:.02em;}
+  .card-head .tag{font-size:10.5px;color:var(--ink-soft);}
+
+  .field-grid{padding:10px 16px 16px;}
+  .field{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line);}
+  .field:last-child{border-bottom:none;}
+  .field label{font-size:13.5px;color:var(--ink);flex:1;}
+  .field .unit{font-size:11.5px;color:var(--ink-soft);margin-left:6px;}
+  .field input, .field select{
+    width:120px;text-align:right;
+    border:1px solid var(--line);border-radius:6px;
+    padding:7px 9px;font-size:15px;background:#fff;color:var(--ink);
+    appearance:none;-webkit-appearance:none;
+  }
+  .field input:focus, .field select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px rgba(31,92,86,.12);}
+  .field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235a564c' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+  .field input[type="text"]{text-align:left;}
+
+  .btn-row{padding:2px 16px 16px;}
+  .btn{
+    width:100%;padding:12px;border:none;border-radius:8px;
+    background:var(--teal);color:#f4f2e8;font-size:15px;font-weight:700;
+    letter-spacing:.02em;cursor:pointer;
+  }
+  .btn:active{background:var(--teal-deep);}
+
+  .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
+    border-top:1px solid var(--line);}
+  .result-cell{background:var(--paper);padding:14px 16px;}
+  .result-cell .label{font-size:11.5px;color:var(--ink-soft);margin-bottom:4px;}
+  .result-cell .value{font-size:19px;font-weight:700;color:var(--teal-deep);}
+  .result-cell .value .u{font-size:12px;font-weight:400;color:var(--ink-soft);margin-left:2px;}
+  .result-cell.hi .value{color:var(--rust);}
+
+  .formula-box{
+    margin:14px 16px 0;padding:14px 16px;
+    background:var(--paper);border-radius:10px;border:1px solid var(--line);
+  }
+  .formula-box h3{margin:0 0 10px;font-size:13px;color:var(--teal-deep);}
+  .formula-row{
+    font-size:12.5px;color:var(--ink-soft);line-height:1.8;
+    padding:4px 0;border-bottom:1px dashed var(--line);
+  }
+  .formula-row:last-child{border-bottom:none;}
+  .formula-row .eq{color:var(--ink-soft);}
+  .formula-row .res{color:var(--teal-deep);font-weight:700;}
+
+  .note{
+    margin:14px 16px 0;padding:10px 14px;
+    background:#efece0;border-left:3px solid var(--teal);
+    font-size:11.5px;color:var(--ink-soft);line-height:1.6;border-radius:0 6px 6px 0;
+  }
+  footer{text-align:center;font-size:11px;color:var(--ink-soft);padding:20px 16px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">华泰造纸 · 废纸成本核算</div>
+    <h1>废纸制浆成本计算器 V2.1</h1>
+    <div class="sub">得率核算法 · 基准系数 = 100 + 成纸灰分 + 成纸水分 · 综合扣除 = 塑料 + 重杂 + 除砂</div>
+  </header>
+
+  <section class="card">
+    <div class="card-head"><h2>原料参数</h2><span class="tag">废纸</span></div>
+    <div class="field-grid">
+      <div class="field">
+        <label>废纸名称</label>
+        <div>
+          <select id="paperSelect" onchange="onPaperChange()">
+            <option value="custom">-- 自定义 --</option>
+            <option value="箱板纸特级">箱板纸特级</option>
+            <option value="箱板纸A" selected>箱板纸A</option>
+            <option value="坑卡">坑卡</option>
+            <option value="水松纸">水松纸</option>
+            <option value="无碳纸">无碳纸</option>
+            <option value="印花纸">印花纸</option>
+            <option value="中温浆">中温浆</option>
+            <option value="纸芯筒">纸芯筒</option>
+            <option value="盛源裁边">盛源裁边</option>
+            <option value="本色竹浆">本色竹浆</option>
+            <option value="进口OCC干磨浆">进口OCC干磨浆</option>
+            <option value="扑克牌碎纸">扑克牌碎纸</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" id="customNameField" style="display:none;">
+        <label>自定义名称</label>
+        <div><input type="text" id="customName" value=""></div>
+      </div>
+      <div class="field">
+        <label>采购价</label>
+        <div><input type="number" id="price" value="2000" inputmode="decimal"><span class="unit">元/吨</span></div>
+      </div>
+      <div class="field">
+        <label>实测灰分</label>
+        <div><input type="number" id="ash" value="21.3" step="0.1" inputmode="decimal"><span class="unit">%</span></div>
+      </div>
+      <div class="field">
+        <label>验收水分</label>
+        <div><input type="number" id="moistureIn" value="12.0" step="0.1" inputmode="decimal"><span class="unit">%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>成纸参数</h2><span class="tag">需求侧</span></div>
+    <div class="field-grid">
+      <div class="field">
+        <label>成纸灰分</label>
+        <div><input type="number" id="ashPaper" value="17" step="0.1" inputmode="decimal"><span class="unit">%</span></div>
+      </div>
+      <div class="field">
+        <label>成纸水分</label>
+        <div><input type="number" id="moisturePaper" value="7.5" step="0.1" inputmode="decimal"><span class="unit">%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>杂质扣除</h2><span class="tag">综合扣除 = 三项之和</span></div>
+    <div class="field-grid">
+      <div class="field">
+        <label>塑料杂质</label>
+        <div><input type="number" id="plastic" value="0" step="0.1" inputmode="decimal"><span class="unit">%</span></div>
+      </div>
+      <div class="field">
+        <label>重杂物-石子等</label>
+        <div><input type="number" id="heavy" value="0" step="0.1" inputmode="decimal"><span class="unit">%</span></div>
+      </div>
+      <div class="field">
+        <label>除砂损失-沙粒</label>
+        <div><input type="number" id="sand" value="0" step="0.1" inputmode="decimal"><span class="unit">%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="btn-row"><button class="btn" onclick="calc()">计算</button></div>
+
+  <section class="card" id="resultCard" style="display:none;">
+    <div class="card-head"><h2>计算结果</h2><span class="tag" id="resultTag">废纸</span></div>
+    <div class="result-grid">
+      <div class="result-cell"><div class="label">基准系数</div><div class="value" id="rBase">-<span class="u"></span></div></div>
+      <div class="result-cell"><div class="label">综合扣除</div><div class="value" id="rDeduct">-<span class="u">%</span></div></div>
+      <div class="result-cell hi"><div class="label">得率</div><div class="value" id="rYield">-<span class="u">%</span></div></div>
+      <div class="result-cell hi"><div class="label">制浆成本</div><div class="value" id="rCost">-<span class="u">元/吨</span></div></div>
+      <div class="result-cell"><div class="label">有效浆产出</div><div class="value" id="rOutput">-<span class="u">kg/吨原料</span></div></div>
+      <div class="result-cell"><div class="label">吨纸耗浆</div><div class="value" id="rDosage">-<span class="u">吨</span></div></div>
+    </div>
+  </section>
+
+  <div class="formula-box" id="formulaBox" style="display:none;">
+    <h3>核算过程</h3>
+    <div class="formula-row" id="f1"></div>
+    <div class="formula-row" id="f2"></div>
+    <div class="formula-row" id="f3"></div>
+    <div class="formula-row" id="f4"></div>
+    <div class="formula-row" id="f5"></div>
+    <div class="formula-row" id="f6"></div>
+  </div>
+
+  <div class="note">
+    <strong>公式说明：</strong>基准系数 = 100 + 成纸灰分 + 成纸水分，本质是把"造纸时纸里要带走多少灰分和水分"反向摊回原料。得率 = 基准系数 − 实测灰分 − 验收水分 − 综合扣除。制浆成本 = 采购价 ÷ 得率% × 100。
+  </div>
+
+  <footer>华泰造纸废纸成本计算器 V2.1 · 单文件离线工具</footer>
+</div>
+
+<script>
+// 表格数据：12种原料的标准参数
+var paperData = {
+  "箱板纸特级": {price: 2190, ash: 18.5, moistureIn: 12.0, plastic: 0, heavy: 0, sand: 3.3},
+  "箱板纸A":    {price: 2000, ash: 21.3, moistureIn: 12.0, plastic: 0, heavy: 0, sand: 6.4},
+  "坑卡":       {price: 1950, ash: 22.6, moistureIn: 12.0, plastic: 0, heavy: 0, sand: 5.0},
+  "水松纸":     {price: 1800, ash: 24.3, moistureIn: 12.0, plastic: 0, heavy: 0, sand: 3.0},
+  "无碳纸":     {price: 1950, ash: 9.3,  moistureIn: 14.0, plastic: 0, heavy: 0, sand: 4.5},
+  "印花纸":     {price: 1950, ash: 9.0,  moistureIn: 14.0, plastic: 0, heavy: 0, sand: 4.5},
+  "中温浆":     {price: 1920, ash: 4.5,  moistureIn: 8.0,  plastic: 0, heavy: 0, sand: 12.0},
+  "纸芯筒":     {price: 1510, ash: 21.2, moistureIn: 12.0, plastic: 0, heavy: 0, sand: 5.0},
+  "盛源裁边":   {price: 2410, ash: 17.6, moistureIn: 9.0,  plastic: 0, heavy: 0, sand: 0.0},
+  "本色竹浆":   {price: 2650, ash: 5.0,  moistureIn: 10.0, plastic: 0, heavy: 0, sand: 0.0},
+  "进口OCC干磨浆": {price: 2150, ash: 13.0, moistureIn: 10.0, plastic: 0, heavy: 0, sand: 2.0},
+  "扑克牌碎纸": {price: 1400, ash: 16.73,moistureIn: 10.0, plastic: 0, heavy: 0, sand: 3.0}
+};
+
+function onPaperChange(){
+  var select = document.getElementById('paperSelect');
+  var name = select.value;
+  var customField = document.getElementById('customNameField');
+  
+  if(name === 'custom'){
+    customField.style.display = 'flex';
+    document.getElementById('customName').value = '';
+    return;
+  }
+  
+  customField.style.display = 'none';
+  var data = paperData[name];
+  if(data){
+    document.getElementById('price').value = data.price;
+    document.getElementById('ash').value = data.ash;
+    document.getElementById('moistureIn').value = data.moistureIn;
+    document.getElementById('plastic').value = data.plastic;
+    document.getElementById('heavy').value = data.heavy;
+    document.getElementById('sand').value = data.sand;
+  }
+}
+
+function fmt(n, d){
+  if(d === undefined) d = (n % 1 === 0) ? 0 : 1;
+  return Number(n).toFixed(d);
+}
+
+function calc(){
+  var select = document.getElementById('paperSelect');
+  var name = select.value === 'custom' ? (document.getElementById('customName').value || '自定义') : select.value;
+  var price = parseFloat(document.getElementById('price').value) || 0;
+  var ash = parseFloat(document.getElementById('ash').value) || 0;
+  var moistureIn = parseFloat(document.getElementById('moistureIn').value) || 0;
+  var ashPaper = parseFloat(document.getElementById('ashPaper').value) || 0;
+  var moisturePaper = parseFloat(document.getElementById('moisturePaper').value) || 0;
+  var plastic = parseFloat(document.getElementById('plastic').value) || 0;
+  var heavy = parseFloat(document.getElementById('heavy').value) || 0;
+  var sand = parseFloat(document.getElementById('sand').value) || 0;
+
+  // 体系A：得率核算法
+  var baseCoeff = 100 + ashPaper + moisturePaper;
+  var deduct = plastic + heavy + sand;
+  var yieldRate = baseCoeff - ash - moistureIn - deduct;
+  var pulpCost = price / (yieldRate / 100);
+  var output = yieldRate * 10;
+
+  // 体系B：物料平衡验证
+  var dryPaper = 1000 * (1 - moisturePaper / 100);
+  var fiber = dryPaper * (1 - ashPaper / 100);
+  var dryPulp = fiber / (1 - ash / 100);
+  var airDryPulp = dryPulp / ((100 - moistureIn) / 100);
+  var dosage = airDryPulp / 1000;
+  var costB = dosage * price;
+
+  document.getElementById('resultTag').textContent = name;
+  document.getElementById('rBase').innerHTML = fmt(baseCoeff, 1) + '<span class="u"></span>';
+  document.getElementById('rDeduct').innerHTML = fmt(deduct, 1) + '<span class="u">%</span>';
+  document.getElementById('rYield').innerHTML = fmt(yieldRate, 1) + '<span class="u">%</span>';
+  document.getElementById('rCost').innerHTML = fmt(pulpCost, 0) + '<span class="u">元/吨</span>';
+  document.getElementById('rOutput').innerHTML = fmt(output, 1) + '<span class="u">kg/吨原料</span>';
+  document.getElementById('rDosage').innerHTML = fmt(dosage, 3) + '<span class="u">吨</span>';
+  document.getElementById('resultCard').style.display = 'block';
+
+  document.getElementById('f1').innerHTML = '<span class="eq">基准系数 = 100 + ' + fmt(ashPaper,1) + ' + ' + fmt(moisturePaper,1) + ' = </span><span class="res">' + fmt(baseCoeff,1) + '</span>';
+  document.getElementById('f2').innerHTML = '<span class="eq">综合扣除 = ' + fmt(plastic,1) + ' + ' + fmt(heavy,1) + ' + ' + fmt(sand,1) + ' = </span><span class="res">' + fmt(deduct,1) + '%</span>';
+  document.getElementById('f3').innerHTML = '<span class="eq">得率 = ' + fmt(baseCoeff,1) + ' &minus; ' + fmt(ash,1) + ' &minus; ' + fmt(moistureIn,1) + ' &minus; ' + fmt(deduct,1) + ' = </span><span class="res">' + fmt(yieldRate,1) + '%</span>';
+  document.getElementById('f4').innerHTML = '<span class="eq">制浆成本 = ' + fmt(price,0) + ' &divide; ' + fmt(yieldRate,1) + '% = </span><span class="res">' + fmt(pulpCost,0) + ' 元/吨</span>';
+  document.getElementById('f5').innerHTML = '<span class="eq">有效浆产出 = ' + fmt(yieldRate,1) + '% &times; 10 = </span><span class="res">' + fmt(output,1) + ' kg/吨原料</span>';
+  document.getElementById('f6').innerHTML = '<span class="eq">【物料平衡验证】吨纸耗浆 = ' + fmt(dosage,3) + '吨，浆成本 = ' + fmt(costB,0) + '元</span>';
+  document.getElementById('formulaBox').style.display = 'block';
+}
+
+window.addEventListener('load', function(){
+  onPaperChange();
+  calc();
+});
+</script>
+</body>
+</html>
