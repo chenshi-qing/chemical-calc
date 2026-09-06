@@ -2,141 +2,155 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>原料工艺及原料需求核算工具</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>原料工艺及需求核算工具</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Helvetica Neue", sans-serif;
-      background-color: #f4f6f9;
-      color: #1e293b;
-      padding: 12px;
-      font-size: 13px;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .card {
-      background: #ffffff;
-      border-radius: 10px;
-      padding: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      margin-bottom: 16px;
-    }
-    h1 {
-      text-align: center;
-      font-size: 1.25rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+      background-color: #f1f5f9;
       color: #0f172a;
-      margin-bottom: 14px;
-      font-weight: 700;
+      padding: 10px;
+      padding-bottom: 70px; /* 给底部固定栏留空间 */
+      font-size: 14px;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    h1 { font-size: 1.1rem; text-align: center; margin-bottom: 10px; color: #1e293b; }
+    
+    /* 折叠设置面板 */
+    details.config-panel {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    details.config-panel summary {
+      font-weight: 600;
+      color: #475569;
+      font-size: 0.85rem;
+      cursor: pointer;
     }
     .top-inputs {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed #e2e8f0;
     }
-    .input-group {
-      display: flex;
-      flex-direction: column;
-    }
-    .input-group label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #475569;
-      margin-bottom: 4px;
-    }
+    .input-group label { font-size: 0.75rem; color: #64748b; display: block; margin-bottom: 3px; }
     .input-group input {
-      padding: 8px 10px;
+      width: 100%;
+      padding: 6px;
       border: 1px solid #cbd5e1;
       border-radius: 6px;
-      font-size: 0.95rem;
-      outline: none;
-      transition: all 0.2s;
+      font-size: 0.9rem;
     }
-    .input-group input:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+
+    /* 手机端卡片列表结构 */
+    .mobile-list { display: flex; flex-direction: column; gap: 10px; }
+    .item-card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      border-left: 4px solid #2563eb;
     }
-    .table-wrapper {
-      overflow-x: auto;
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f1f5f9;
     }
-    table {
+    .card-title { font-weight: bold; font-size: 1rem; color: #0f172a; }
+    .card-tag { font-size: 0.75rem; background: #eff6ff; color: #2563eb; padding: 2px 6px; border-radius: 4px; }
+    
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .field-box {
+      background: #f8fafc;
+      padding: 6px 8px;
+      border-radius: 6px;
+    }
+    .field-box label { font-size: 0.7rem; color: #64748b; display: block; }
+    .field-box input {
       width: 100%;
-      border-collapse: collapse;
-      min-width: 980px;
-      font-size: 0.85rem;
-    }
-    th, td {
-      border: 1px solid #cbd5e1;
-      padding: 7px 5px;
-      text-align: center;
-      vertical-align: middle;
-    }
-    th {
-      background-color: #f1f5f9;
-      color: #1e293b;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-    tr:nth-child(even) {
-      background-color: #f8fafc;
-    }
-    .category-cell {
-      font-weight: 600;
-      background-color: #f1f5f9;
-    }
-    input.cell-input {
-      width: 90%;
-      padding: 4px 2px;
       border: 1px solid #cbd5e1;
       border-radius: 4px;
+      padding: 4px;
+      font-size: 0.9rem;
+      font-weight: 600;
       text-align: center;
-      font-size: 0.85rem;
-      outline: none;
+      background: #fff;
     }
-    input.cell-input:focus {
-      border-color: #2563eb;
-      background-color: #eff6ff;
+    .field-val { font-weight: bold; font-size: 0.95rem; margin-top: 2px; }
+    .negative { color: #dc2626; }
+
+    /* 折叠更多参数 */
+    .card-more {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 4px;
     }
-    .calc-val {
-      font-weight: 600;
-      color: #0f172a;
-    }
-    .negative {
-      color: #dc2626;
-    }
-    .total-row {
-      background-color: #e2e8f0 !important;
-      font-weight: bold;
-    }
-    .sub-row {
-      background-color: #fef3c7 !important;
-      font-weight: bold;
-    }
-    .btn-container {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 14px;
-    }
-    .btn {
-      padding: 8px 16px;
-      border: none;
+    .more-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 6px;
+      padding-top: 6px;
+      background: #fafafa;
+      padding: 6px;
       border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 0.85rem;
     }
-    .btn-secondary { background-color: #64748b; color: white; }
-    .btn-secondary:hover { background-color: #475569; }
+
+    /* 电脑大屏表格显示 */
+    .pc-table-wrapper { display: none; }
+
+    @media (min-width: 768px) {
+      .mobile-list { display: none; }
+      .pc-table-wrapper { display: block; overflow-x: auto; background: #fff; border-radius: 8px; padding: 12px; }
+      table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+      th, td { border: 1px solid #cbd5e1; padding: 8px 6px; text-align: center; }
+      th { background-color: #f1f5f9; }
+      input.cell-input { width: 80%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
+    }
+
+    /* 手机底部固定汇总栏 */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0f172a;
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+      z-index: 100;
+    }
+    .bar-stat label { font-size: 0.7rem; color: #94a3b8; display: block; }
+    .bar-stat span { font-size: 1.05rem; font-weight: bold; }
+    .bar-stat .red { color: #f87171; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="card">
-    <h1>原料工艺及原料需求核算工具</h1>
+  <h1>原料工艺及需求核算工具</h1>
+
+  <!-- 折叠基础设置 -->
+  <details class="config-panel">
+    <summary>⚙️ 基础参数设置 (点击展开)</summary>
     <div class="top-inputs">
       <div class="input-group">
         <label>排产计划 (吨)</label>
@@ -147,121 +161,132 @@
         <input type="number" id="dailyCapacity" value="400" oninput="calculateAll()">
       </div>
       <div class="input-group">
-        <label>单车标准装载量 (吨/车)</label>
+        <label>装载量 (吨/车)</label>
         <input type="number" id="truckCapacity" value="30" oninput="calculateAll()">
       </div>
     </div>
+  </details>
+
+  <!-- 手机端：卡片列表视图 -->
+  <div class="mobile-list" id="mobileList"></div>
+
+  <!-- PC端：表格视图 -->
+  <div class="pc-table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>废纸种类</th>
+          <th>名称</th>
+          <th>计划调整 (%)</th>
+          <th>包数</th>
+          <th>包重</th>
+          <th>每天用量 (吨)</th>
+          <th>需求车数</th>
+          <th>库存 (吨)</th>
+          <th>可用天数</th>
+          <th>排产废纸需求 (吨)</th>
+        </tr>
+      </thead>
+      <tbody id="pcTableBody"></tbody>
+    </table>
   </div>
+</div>
 
-  <div class="card">
-    <div class="table-wrapper">
-      <table id="mainTable">
-        <thead>
-          <tr>
-            <th>废纸种类</th>
-            <th>废纸名称</th>
-            <th>计划调整 (%)</th>
-            <th>包数</th>
-            <th>包重</th>
-            <th>数量</th>
-            <th>实际占比 (%)</th>
-            <th>每天用量 (吨)</th>
-            <th>需求车数</th>
-            <th>库存量 (吨)</th>
-            <th>可用天数</th>
-            <th>排产计划废纸需求 (吨)</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          <!-- 动态渲染 -->
-        </tbody>
-        <tfoot>
-          <tr class="total-row">
-            <td colspan="2">合计</td>
-            <td id="totalPlanPct">100%</td>
-            <td id="totalPacks">-</td>
-            <td id="totalWeight">-</td>
-            <td id="totalQty">23</td>
-            <td id="totalActualPct">100%</td>
-            <td id="totalDailyTons">400.0</td>
-            <td id="totalTrucks">13.3</td>
-            <td id="totalStock">2029</td>
-            <td>-</td>
-            <td id="totalPlanDemand" class="negative">-6971.0</td>
-          </tr>
-          <tr class="sub-row">
-            <td>竹浆</td>
-            <td>本色竹浆</td>
-            <td>20%</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
-            <td id="bambooDailyTons">90.0</td>
-            <td id="bambooTrucks">6.0</td>
-            <td id="bambooStock">52</td>
-            <td id="bambooDays">0.6</td>
-            <td id="bambooDemand" class="negative">-1748.0</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-
-    <div class="btn-container">
-      <button class="btn btn-secondary" onclick="resetDefaults()">重置为原始参数</button>
-    </div>
+<!-- 底部固定汇总 -->
+<div class="bottom-bar">
+  <div class="bar-stat">
+    <label>日总用量</label>
+    <span id="barDaily">400.0 吨</span>
+  </div>
+  <div class="bar-stat">
+    <label>总需求缺口</label>
+    <span id="barDemand" class="red">-6971.0 吨</span>
   </div>
 </div>
 
 <script>
-// 默认表格数据配置
 const defaultRows = [
-  { category: "黄纸类", catSpan: 2, name: "箱板纸A", planPct: 30, packs: 5, weight: 1, stock: 390 },
-  { category: "黄纸类", catSpan: 0, name: "特级黄板", planPct: 20, packs: 4, weight: 1, stock: 808 },
-  { category: "白纸类", catSpan: 3, name: "印花纸", planPct: 5, packs: 1, weight: 1, stock: 179 },
-  { category: "白纸类", catSpan: 0, name: "保密局纸浆", planPct: 5, packs: 1, weight: 1, stock: 122 },
-  { category: "白纸类", catSpan: 0, name: "低白双胶", planPct: 5, packs: 1, weight: 1, stock: 389 },
-  { category: "纤维浆", catSpan: 4, name: "中温湿浆", planPct: 10, packs: 2, weight: 1, stock: 11 },
-  { category: "纤维浆", catSpan: 0, name: "中温废纸", planPct: 5, packs: 1, weight: 1, stock: 78 },
-  { category: "纤维浆", catSpan: 0, name: "本色竹浆", planPct: 15, packs: 3, weight: 1, stock: 52 },
-  { category: "纤维浆", catSpan: 0, name: "污泥", planPct: 5, packs: 1, weight: 3, stock: 0, isCustomTruck: true }
+  { category: "黄纸类", name: "箱板纸A", planPct: 30, packs: 5, weight: 1, stock: 390 },
+  { category: "黄纸类", name: "特级黄板", planPct: 20, packs: 4, weight: 1, stock: 808 },
+  { category: "白纸类", name: "印花纸", planPct: 5, packs: 1, weight: 1, stock: 179 },
+  { category: "白纸类", name: "保密局纸浆", planPct: 5, packs: 1, weight: 1, stock: 122 },
+  { category: "白纸类", name: "低白双胶", planPct: 5, packs: 1, weight: 1, stock: 389 },
+  { category: "纤维浆", name: "中温湿浆", planPct: 10, packs: 2, weight: 1, stock: 11 },
+  { category: "纤维浆", name: "中温废纸", planPct: 5, packs: 1, weight: 1, stock: 78 },
+  { category: "纤维浆", name: "本色竹浆", planPct: 15, packs: 3, weight: 1, stock: 52 },
+  { category: "纤维浆", name: "污泥", planPct: 5, packs: 1, weight: 3, stock: 0, isCustomTruck: true }
 ];
 
 let rowData = JSON.parse(JSON.stringify(defaultRows));
 
-function renderTable() {
-  const tbody = document.getElementById("tableBody");
-  tbody.innerHTML = "";
+function render() {
+  // 渲染手机卡片
+  const mobileContainer = document.getElementById("mobileList");
+  mobileContainer.innerHTML = "";
 
-  rowData.forEach((row, index) => {
-    const tr = document.createElement("tr");
-
-    let categoryTd = "";
-    if (row.catSpan > 0) {
-      categoryTd = `<td class="category-cell" rowspan="${row.catSpan}">${row.category}</td>`;
-    }
-
-    tr.innerHTML = `
-      ${categoryTd}
-      <td><strong>${row.name}</strong></td>
-      <td><input type="number" class="cell-input" value="${row.planPct}" onchange="updateRow(${index}, 'planPct', this.value)"></td>
-      <td><input type="number" class="cell-input" value="${row.packs}" onchange="updateRow(${index}, 'packs', this.value)"></td>
-      <td><input type="number" class="cell-input" value="${row.weight}" onchange="updateRow(${index}, 'weight', this.value)"></td>
-      <td class="calc-val" id="qty_${index}">0</td>
-      <td class="calc-val" id="actPct_${index}">0%</td>
-      <td class="calc-val" id="dailyTons_${index}">0.0</td>
-      <td class="calc-val" id="trucks_${index}">0.0</td>
-      <td><input type="number" class="cell-input" value="${row.stock}" onchange="updateRow(${index}, 'stock', this.value)"></td>
-      <td class="calc-val" id="days_${index}">0.0</td>
-      <td class="calc-val" id="planDemand_${index}">0.0</td>
+  rowData.forEach((row, i) => {
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.innerHTML = `
+      <div class="card-header">
+        <span class="card-title">${row.name}</span>
+        <span class="card-tag">${row.category}</span>
+      </div>
+      <div class="card-grid">
+        <div class="field-box">
+          <label>计划调整 (%)</label>
+          <input type="number" value="${row.planPct}" onchange="updateVal(${i}, 'planPct', this.value)">
+        </div>
+        <div class="field-box">
+          <label>库存量 (吨)</label>
+          <input type="number" value="${row.stock}" onchange="updateVal(${i}, 'stock', this.value)">
+        </div>
+        <div class="field-box">
+          <label>日用量 (吨)</label>
+          <div class="field-val" id="m_daily_${i}">0</div>
+        </div>
+        <div class="field-box">
+          <label>排产需求 (吨)</label>
+          <div class="field-val negative" id="m_demand_${i}">0</div>
+        </div>
+      </div>
+      <details class="card-more">
+        <summary>查看更多参数 (包数/车数/天数)</summary>
+        <div class="more-grid">
+          <div>包数: <input type="number" style="width:40px" value="${row.packs}" onchange="updateVal(${i}, 'packs', this.value)"></div>
+          <div>包重: <input type="number" style="width:40px" value="${row.weight}" onchange="updateVal(${i}, 'weight', this.value)"></div>
+          <div>车数: <span id="m_truck_${i}">-</span></div>
+          <div>天数: <span id="m_days_${i}">-</span></div>
+        </div>
+      </details>
     `;
-    tbody.appendChild(tr);
+    mobileContainer.appendChild(card);
+  });
+
+  // 渲染 PC 表格
+  const pcBody = document.getElementById("pcTableBody");
+  pcBody.innerHTML = "";
+  rowData.forEach((row, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.category}</td>
+      <td><strong>${row.name}</strong></td>
+      <td><input class="cell-input" type="number" value="${row.planPct}" onchange="updateVal(${i}, 'planPct', this.value)"></td>
+      <td><input class="cell-input" type="number" value="${row.packs}" onchange="updateVal(${i}, 'packs', this.value)"></td>
+      <td><input class="cell-input" type="number" value="${row.weight}" onchange="updateVal(${i}, 'weight', this.value)"></td>
+      <td id="pc_daily_${i}">0</td>
+      <td id="pc_truck_${i}">0</td>
+      <td><input class="cell-input" type="number" value="${row.stock}" onchange="updateVal(${i}, 'stock', this.value)"></td>
+      <td id="pc_days_${i}">0</td>
+      <td id="pc_demand_${i}" class="negative">0</td>
+    `;
+    pcBody.appendChild(tr);
   });
 
   calculateAll();
 }
 
-function updateRow(index, field, value) {
+function updateVal(index, field, value) {
   rowData[index][field] = parseFloat(value) || 0;
   calculateAll();
 }
@@ -271,109 +296,44 @@ function calculateAll() {
   const dailyCapacity = parseFloat(document.getElementById("dailyCapacity").value) || 0;
   const truckCapacity = parseFloat(document.getElementById("truckCapacity").value) || 30;
 
-  // 1. 计算各行“数量” (包数 * 包重) 和总数量
   let totalQty = 0;
-  rowData.forEach(r => {
-    r.qty = r.packs * r.weight;
-    totalQty += r.qty;
-  });
+  rowData.forEach(r => { totalQty += (r.packs * r.weight); });
 
-  let sumPlanPct = 0;
-  let sumActPct = 0;
-  let sumDailyTons = 0;
-  let sumTrucks = 0;
-  let sumStock = 0;
-  let sumPlanDemand = 0;
+  let sumDaily = 0;
+  let sumDemand = 0;
 
-  // 2. 逐行精确计算
   rowData.forEach((r, i) => {
-    const qty = r.qty;
+    const qty = r.packs * r.weight;
     const actPct = totalQty > 0 ? (qty / totalQty) : 0;
     const dailyTons = dailyCapacity * actPct;
-    
-    let trucksVal = 0;
-    let trucksText = "";
-    if (r.isCustomTruck) {
-      trucksText = "自备";
-    } else {
-      trucksVal = truckCapacity > 0 ? (dailyTons / truckCapacity) : 0;
-      trucksText = trucksVal.toFixed(1);
-    }
-    
-    const stock = r.stock;
-    const days = dailyTons > 0 ? (stock / dailyTons).toFixed(1) : "-";
-    const planDemand = stock - (planTons * actPct);
+    const trucks = r.isCustomTruck ? "自备" : (truckCapacity > 0 ? (dailyTons / truckCapacity).toFixed(1) : 0);
+    const days = dailyTons > 0 ? (r.stock / dailyTons).toFixed(1) : "-";
+    const demand = r.stock - (planTons * actPct);
 
-    sumPlanPct += r.planPct;
-    sumActPct += actPct;
-    sumDailyTons += dailyTons;
-    if (!r.isCustomTruck) sumTrucks += trucksVal;
-    sumStock += stock;
-    sumPlanDemand += planDemand;
+    sumDaily += dailyTons;
+    sumDemand += demand;
 
-    // UI 赋值
-    document.getElementById(`qty_${i}`).innerText = qty;
-    document.getElementById(`actPct_${i}`).innerText = (actPct * 100).toFixed(0) + "%";
-    document.getElementById(`dailyTons_${i}`).innerText = dailyTons.toFixed(1);
-    document.getElementById(`trucks_${i}`).innerText = trucksText;
-    document.getElementById(`days_${i}`).innerText = days;
-    
-    const demandEl = document.getElementById(`planDemand_${i}`);
-    demandEl.innerText = planDemand.toFixed(1);
-    if (planDemand < 0) {
-      demandEl.classList.add("negative");
-    } else {
-      demandEl.classList.remove("negative");
-    }
+    // 更新手机端
+    document.getElementById(`m_daily_${i}`).innerText = dailyTons.toFixed(1);
+    document.getElementById(`m_demand_${i}`).innerText = demand.toFixed(1);
+    document.getElementById(`m_truck_${i}`).innerText = trucks;
+    document.getElementById(`m_days_${i}`).innerText = days;
+
+    // 更新 PC 端
+    document.getElementById(`pc_daily_${i}`).innerText = dailyTons.toFixed(1);
+    document.getElementById(`pc_demand_${i}`).innerText = demand.toFixed(1);
+    document.getElementById(`pc_truck_${i}`).innerText = trucks;
+    document.getElementById(`pc_days_${i}`).innerText = days;
   });
 
-  // 3. 汇总行渲染
-  document.getElementById("totalPlanPct").innerText = sumPlanPct + "%";
-  document.getElementById("totalQty").innerText = totalQty;
-  document.getElementById("totalActualPct").innerText = Math.round(sumActPct * 100) + "%";
-  document.getElementById("totalDailyTons").innerText = sumDailyTons.toFixed(1);
-  document.getElementById("totalTrucks").innerText = sumTrucks.toFixed(1);
-  document.getElementById("totalStock").innerText = sumStock;
-  
-  const totalDemandEl = document.getElementById("totalPlanDemand");
-  totalDemandEl.innerText = sumPlanDemand.toFixed(1);
-  if (sumPlanDemand < 0) {
-    totalDemandEl.classList.add("negative");
-  } else {
-    totalDemandEl.classList.remove("negative");
-  }
-
-  // 4. 底部“竹浆 - 本色竹浆 (20%)”独立联动行计算
-  const bambooPct = 0.20;
-  const bambooDaily = dailyCapacity * bambooPct;
-  const bambooTrucks = truckCapacity > 0 ? (bambooDaily / (truckCapacity / 2)) : 0; // 对应图中 90吨/15吨或30吨配车比
-  const bambooStock = 52;
-  const bambooDays = bambooDaily > 0 ? (bambooStock / bambooDaily).toFixed(1) : "0.0";
-  const bambooDemand = bambooStock - (planTons * bambooPct);
-
-  document.getElementById("bambooDailyTons").innerText = bambooDaily.toFixed(1);
-  document.getElementById("bambooTrucks").innerText = (bambooDaily / 15).toFixed(1); // 结合工艺对应 6.0 车
-  document.getElementById("bambooDays").innerText = bambooDays;
-  
-  const bambooDemandEl = document.getElementById("bambooDemand");
-  bambooDemandEl.innerText = bambooDemand.toFixed(1);
-  if (bambooDemand < 0) {
-    bambooDemandEl.classList.add("negative");
-  } else {
-    bambooDemandEl.classList.remove("negative");
-  }
+  // 更新底部固定栏
+  document.getElementById("barDaily").innerText = sumDaily.toFixed(1) + " 吨";
+  const demandEl = document.getElementById("barDemand");
+  demandEl.innerText = sumDemand.toFixed(1) + " 吨";
+  if (sumDemand < 0) demandEl.className = "red"; else demandEl.className = "";
 }
 
-function resetDefaults() {
-  rowData = JSON.parse(JSON.stringify(defaultRows));
-  document.getElementById("planTons").value = 9000;
-  document.getElementById("dailyCapacity").value = 400;
-  document.getElementById("truckCapacity").value = 30;
-  renderTable();
-}
-
-window.onload = renderTable;
+window.onload = render;
 </script>
-
 </body>
 </html>
