@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>配比计算器</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: #f0f4f8;
+    padding: 16px;
+    color: #1e293b;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: #1d4ed8;
+  }
+  .sub {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 500px;
+  }
+  th, td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.95rem;
+  }
+  th {
+    background: #f1f5f9;
+    font-weight: 600;
+  }
+  input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 1rem;
+    text-align: center;
+  }
+  input:focus {
+    outline: none;
+    border-color: #3b82f6;
+  }
+  .weight, .ratio {
+    font-weight: 600;
+    color: #1d4ed8;
+  }
+  .ratio { color: #16a34a; }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: #2563eb;
+    color: white;
+  }
+  .btn:active { background: #1d4ed8; }
+  .summary {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    padding: 12px 0;
+  }
+  .summary div { flex: 1; }
+  .summary .num {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1d4ed8;
+  }
+  .summary .label {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+</style>
+</head>
+<body>
+  <h1>📦 配比计算器</h1>
+  <p class="sub">输入包数和包重，自动计算重量与配比</p >
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>包数</th>
+          <th>包重</th>
+          <th>重量</th>
+          <th>配比</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <!-- 行会通过JS添加 -->
+      </tbody>
+    </table>
+    <button class="btn" onclick="addRow()">＋ 添加一行</button>
+  </div>
+
+  <div class="card">
+    <div class="summary">
+      <div>
+        <div class="num" id="totalBags">0</div>
+        <div class="label">总包数</div>
+      </div>
+      <div>
+        <div class="num" id="totalWeight">0</div>
+        <div class="label">总重量</div>
+      </div>
+      <div>
+        <div class="num" id="totalRatio">0%</div>
+        <div class="label">配比合计</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  function addRow(name = '', bags = '', weight = '') {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" class="name" value="${name}" placeholder="物料" oninput="calc()"></td>
+      <td><input type="number" class="bags" value="${bags}" placeholder="0" oninput="calc()"></td>
+      <td><input type="number" class="pkg" value="${weight}" placeholder="0" oninput="calc()"></td>
+      <td class="weight">0</td>
+      <td class="ratio">0%</td>
+    `;
+    document.getElementById('tbody').appendChild(tr);
+    calc();
+  }
+
+  function calc() {
+    const rows = document.querySelectorAll('#tbody tr');
+    let totalW = 0, totalB = 0;
+    const weights = [];
+
+    rows.forEach(tr => {
+      const b = parseFloat(tr.querySelector('.bags').value) || 0;
+      const p = parseFloat(tr.querySelector('.pkg').value) || 0;
+      const w = b * p;
+      weights.push(w);
+      totalW += w;
+      totalB += b;
+      tr.querySelector('.weight').textContent = w ? w.toFixed(2) : '0';
+    });
+
+    rows.forEach((tr, i) => {
+      const r = totalW > 0 ? (weights[i] / totalW * 100) : 0;
+      tr.querySelector('.ratio').textContent = r.toFixed(1) + '%';
+    });
+
+    document.getElementById('totalBags').textContent = totalB;
+    document.getElementById('totalWeight').textContent = totalW.toFixed(2);
+    document.getElementById('totalRatio').textContent = totalW > 0 ? '100%' : '0%';
+  }
+
+  // 默认加两行
+  addRow('物料A', 10, 25);
+  addRow('物料B', 5, 50);
+</script>
+</body>
+</html>
