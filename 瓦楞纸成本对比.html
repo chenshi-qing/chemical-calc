@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>竹浆比例与废纸配比成本对比计算器</title>
+  <title>竹浆比例与原料成本核算对比计算器</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -42,18 +42,19 @@
     th { background-color: #f8fafc; color: #334155; font-weight: bold; }
     
     input[type="number"] {
-      width: 70px;
+      width: 80px;
       padding: 4px;
-      border: 1px solid #cbd5e1;
+      border: 1px solid #2563eb;
+      background-color: #eff6ff;
       border-radius: 4px;
       text-align: center;
       font-size: 12px;
       font-weight: bold;
     }
     input[type="number"]:focus {
-      border-color: #2563eb;
+      border-color: #1d4ed8;
       outline: none;
-      background-color: #eff6ff;
+      background-color: #dbeafe;
     }
 
     .bold-row { font-weight: bold; background-color: #f8fafc; }
@@ -86,7 +87,7 @@
   <div class="card">
     <div class="card-title">
       <span>配比与出库明细表</span>
-      <span style="font-size: 0.75rem; color: #64748b; font-weight: normal;">* 修改输入框数据自动联动更新计算结果</span>
+      <span style="font-size: 0.75rem; color: #64748b; font-weight: normal;">* 修改蓝色框内数据即可动态计算</span>
     </div>
     <div class="table-wrapper">
       <table id="calcTable">
@@ -102,16 +103,17 @@
           <tr>
             <th>实际数量(kg)</th>
             <th>金额(元)</th>
-            <th>占比</th>
+            <th>废纸实际占比</th>
             <th>计划数量(kg)</th>
             <th>金额(元)</th>
-            <th>占比</th>
-            <th>数量差异(kg)</th>
-            <th>金额差异(元)</th>
+            <th>废纸计划占比</th>
+            <th>占比差异</th>
+            <th>数量(kg)</th>
+            <th>金额(元)</th>
           </tr>
         </thead>
         <tbody id="tableBody">
-          <!-- 动态生成 -->
+          <!-- 动态渲染 -->
         </tbody>
       </table>
     </div>
@@ -135,20 +137,19 @@
 </div>
 
 <script>
-  // 初始表格数据定义
   const materials = [
-    { name: '废箱板纸黄皮', category: '废纸', price: 1.77, outQty: 67440, qtyA: 166.43, qtyB: 274.13 },
-    { name: '纯纸箱裁边', category: '废纸', price: 1.93, outQty: 76530, qtyA: 188.86, qtyB: 202.30 },
-    { name: '印花纸', category: '废纸', price: 1.80, outQty: 29880, qtyA: 73.74, qtyB: 46.96 },
-    { name: '国杂A', category: '废纸', price: 1.89, outQty: 0, qtyA: 0.00, qtyB: 265.63 },
-    { name: '废无碳纸', category: '废纸', price: 1.55, outQty: 0, qtyA: 0.00, qtyB: 51.00 },
-    { name: '混合白纸边', category: '废纸', price: 1.94, outQty: 39890, qtyA: 98.44, qtyB: 0.00 },
-    { name: '废纯白纸边B', category: '废纸', price: 2.34, outQty: 0, qtyA: 0.00, qtyB: 53.13 },
-    { name: '保全局浆', category: '废纸', price: 1.54, outQty: 55560, qtyA: 137.11, qtyB: 48.88 },
-    { name: '中温湿浆', category: '废纸', price: 2.26, outQty: 35390, qtyA: 87.34, qtyB: 41.23 },
-    { name: '中温废纸', category: '废纸', price: 1.53, outQty: 8400, qtyA: 20.73, qtyB: 50.58 },
-    { name: '竹浆（高白竹浆）', category: '木浆', price: 2.27, outQty: 139000, qtyA: 343.03, qtyB: 135.00 },
-    { name: '浆渣', category: '浆渣', price: 0.00, outQty: 42000, qtyA: 0.00, qtyB: 0.00 }
+    { name: '废箱板纸黄皮', price: 1.77, outQty: 67440, qtyA: 166.43, qtyB: 274.13 },
+    { name: '纯纸箱裁边', price: 1.93, outQty: 76530, qtyA: 188.86, qtyB: 202.30 },
+    { name: '印花纸', price: 1.80, outQty: 29880, qtyA: 73.74, qtyB: 46.96 },
+    { name: '国杂A', price: 1.89, outQty: 0, qtyA: 0.00, qtyB: 265.63 },
+    { name: '废无碳纸', price: 1.55, outQty: 0, qtyA: 0.00, qtyB: 51.00 },
+    { name: '混合白纸边', price: 1.94, outQty: 39890, qtyA: 98.44, qtyB: 0.00 },
+    { name: '废纯白纸边B', price: 2.34, outQty: 0, qtyA: 0.00, qtyB: 53.13 },
+    { name: '保全局浆', price: 1.54, outQty: 55560, qtyA: 137.11, qtyB: 48.88 },
+    { name: '中温湿浆', price: 2.26, outQty: 35390, qtyA: 87.34, qtyB: 41.23 },
+    { name: '中温废纸', price: 1.53, outQty: 8400, qtyA: 20.73, qtyB: 50.58 },
+    { name: '竹浆（高白竹浆）', price: 2.27, outQty: 139000, qtyA: 343.03, qtyB: 135.00 },
+    { name: '浆渣', price: 0.00, outQty: 42000, qtyA: 0.00, qtyB: 0.00 }
   ];
 
   function renderTable() {
@@ -170,12 +171,12 @@
           <td><input type="number" step="0.01" id="qtyB_${index}" value="${item.qtyB}" oninput="calculate()"></td>
           <td id="amountB_${index}">0.00</td>
           <td id="ratioB_${index}">0%</td>
+          <td id="diffRatio_${index}">0%</td>
           <td id="diffQty_${index}">0.00</td>
           <td id="diffAmount_${index}">0.00</td>
         </tr>
       `;
 
-      // 插入废纸小计行
       if (index === 9) {
         html += `
           <tr class="bold-row">
@@ -187,13 +188,13 @@
             <td id="subQtyB_waste">0.00</td>
             <td id="subAmountB_waste">0.00</td>
             <td id="subRatioB_waste">0%</td>
+            <td id="subDiffRatio_waste">0%</td>
             <td id="subDiffQty_waste">0.00</td>
             <td id="subDiffAmount_waste">0.00</td>
           </tr>
         `;
       }
 
-      // 插入木浆/竹浆小计行
       if (index === 10) {
         html += `
           <tr class="bold-row">
@@ -205,6 +206,7 @@
             <td id="subQtyB_wood">0.00</td>
             <td id="subAmountB_wood">0.00</td>
             <td id="subRatioB_wood">0%</td>
+            <td id="subDiffRatio_wood">0%</td>
             <td id="subDiffQty_wood">0.00</td>
             <td id="subDiffAmount_wood">0.00</td>
           </tr>
@@ -212,7 +214,6 @@
       }
     });
 
-    // 结尾原材料小计行
     html += `
       <tr class="bold-row">
         <td colspan="2" style="text-align: left;">原材料小计</td>
@@ -223,6 +224,7 @@
         <td id="totalQtyB">0.00</td>
         <td id="totalAmountB">0.00</td>
         <td id="totalRatioB">100%</td>
+        <td id="totalDiffRatio">0%</td>
         <td id="totalDiffQty">0.00</td>
         <td id="totalDiffAmount">0.00</td>
       </tr>
@@ -267,52 +269,62 @@
       sumAmountB += amountB;
       totalOutQty += outQty;
 
-      if (i <= 9) { // 废纸分类
+      if (i <= 9) {
         wasteQtyA += qtyA; wasteQtyB += qtyB;
         wasteAmountA += amountA; wasteAmountB += amountB;
         wasteOutQty += outQty;
-      } else if (i === 10) { // 竹浆分类
+      } else if (i === 10) {
         woodQtyA += qtyA; woodQtyB += qtyB;
         woodAmountA += amountA; woodAmountB += amountB;
         woodOutQty += outQty;
       }
     });
 
-    // 计算占比
     materials.forEach((item, i) => {
       const qtyA = parseFloat(document.getElementById(`qtyA_${i}`).value) || 0;
       const qtyB = parseFloat(document.getElementById(`qtyB_${i}`).value) || 0;
       
       const ratioA = sumQtyA > 0 ? Math.round((qtyA / sumQtyA) * 100) : 0;
       const ratioB = sumQtyB > 0 ? Math.round((qtyB / sumQtyB) * 100) : 0;
+      const diffRatio = ratioA - ratioB;
 
       document.getElementById(`ratioA_${i}`).innerText = `${ratioA}%`;
       document.getElementById(`ratioB_${i}`).innerText = `${ratioB}%`;
+      
+      const diffRatioEl = document.getElementById(`diffRatio_${i}`);
+      diffRatioEl.innerText = `${diffRatio}%`;
+      diffRatioEl.className = diffRatio < 0 ? 'negative' : (diffRatio > 0 ? 'positive' : '');
     });
 
-    // 废纸小计更新
+    // 废纸小计
+    const wasteRatioA = Math.round((wasteQtyA / sumQtyA) * 100) || 0;
+    const wasteRatioB = Math.round((wasteQtyB / sumQtyB) * 100) || 0;
     document.getElementById('subOutQty_waste').innerText = wasteOutQty;
     document.getElementById('subQtyA_waste').innerText = wasteQtyA.toFixed(0);
     document.getElementById('subAmountA_waste').innerText = wasteAmountA.toFixed(0);
-    document.getElementById('subRatioA_waste').innerText = `${Math.round((wasteQtyA / sumQtyA) * 100)}%`;
+    document.getElementById('subRatioA_waste').innerText = `${wasteRatioA}%`;
     document.getElementById('subQtyB_waste').innerText = wasteQtyB.toFixed(0);
     document.getElementById('subAmountB_waste').innerText = wasteAmountB.toFixed(0);
-    document.getElementById('subRatioB_waste').innerText = `${Math.round((wasteQtyB / sumQtyB) * 100)}%`;
+    document.getElementById('subRatioB_waste').innerText = `${wasteRatioB}%`;
+    document.getElementById('subDiffRatio_waste').innerText = `${wasteRatioA - wasteRatioB}%`;
     document.getElementById('subDiffQty_waste').innerText = (wasteQtyA - wasteQtyB).toFixed(1);
     document.getElementById('subDiffAmount_waste').innerText = (wasteAmountA - wasteAmountB).toFixed(1);
 
-    // 竹浆/木浆小计更新
+    // 木浆/竹浆小计
+    const woodRatioA = Math.round((woodQtyA / sumQtyA) * 100) || 0;
+    const woodRatioB = Math.round((woodQtyB / sumQtyB) * 100) || 0;
     document.getElementById('subOutQty_wood').innerText = woodOutQty;
     document.getElementById('subQtyA_wood').innerText = woodQtyA.toFixed(2);
     document.getElementById('subAmountA_wood').innerText = woodAmountA.toFixed(2);
-    document.getElementById('subRatioA_wood').innerText = `${Math.round((woodQtyA / sumQtyA) * 100)}%`;
+    document.getElementById('subRatioA_wood').innerText = `${woodRatioA}%`;
     document.getElementById('subQtyB_wood').innerText = woodQtyB.toFixed(2);
     document.getElementById('subAmountB_wood').innerText = woodAmountB.toFixed(2);
-    document.getElementById('subRatioB_wood').innerText = `${Math.round((woodQtyB / sumQtyB) * 100)}%`;
+    document.getElementById('subRatioB_wood').innerText = `${woodRatioB}%`;
+    document.getElementById('subDiffRatio_wood').innerText = `${woodRatioA - woodRatioB}%`;
     document.getElementById('subDiffQty_wood').innerText = (woodQtyA - woodQtyB).toFixed(2);
     document.getElementById('subDiffAmount_wood').innerText = (woodAmountA - woodAmountB).toFixed(2);
 
-    // 总小计更新
+    // 总计
     document.getElementById('totalOutQty').innerText = totalOutQty;
     document.getElementById('totalQtyA').innerText = sumQtyA.toFixed(0);
     document.getElementById('totalAmountA').innerText = sumAmountA.toFixed(0);
@@ -325,7 +337,7 @@
     document.getElementById('totalDiffQty').innerText = diffTotalQty.toFixed(0);
     document.getElementById('totalDiffAmount').innerText = diffTotalAmount.toFixed(0);
 
-    // 底部浮动条更新
+    // 底部汇总
     document.getElementById('sumPriceA').innerText = `${sumAmountA.toFixed(2)} 元`;
     document.getElementById('sumPriceB').innerText = `${sumAmountB.toFixed(2)} 元`;
     
