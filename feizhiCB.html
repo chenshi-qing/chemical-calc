@@ -2,122 +2,128 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 针对 iPhone 15 Pro Max 优化：禁止默认缩放，保证良好触控体验 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>42g瓦楞纸原料成本计算器</title>
-    <!-- 引入 Tailwind CSS 用于快速UI布局 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 Vue 3 用于数据双向绑定和实时计算 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
         body { background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
         input[type="number"] { -moz-appearance: textfield; }
-        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        /* 强制 iOS 输入框不自动放大屏幕 */
-        input { font-size: 16px !important; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input { font-size: 16px !important; } /* 防止 iOS 自动放大 */
+        .compact-input {
+            padding: 6px 8px !important;
+            border-radius: 8px !important;
+            line-height: 1.2 !important;
+        }
     </style>
 </head>
 <body>
+<div id="app" class="pb-8 max-w-md mx-auto">
 
-<div class="flex justify-between items-center mb-3">
-    <a href="home.html" class="text-xs bg-blue-700 hover:bg-blue-800 px-2.5 py-1 rounded-lg text-blue-100 border border-blue-400/40">
-        ← 工具箱
-    </a>
-    <h1 class="text-lg font-bold">原料成本计算器</h1>
-    <button @click="resetToDefault" class="text-xs bg-blue-500/80 hover:bg-blue-700 px-2.5 py-1 rounded-lg border border-blue-400/40">
-        重置
-    </button>
-</div>
-            
-            <!-- 全局目标参数 -->
-            <div class="flex justify-between items-center text-sm bg-blue-700/60 p-2.5 rounded-xl border border-blue-400/30">
-                <span class="opacity-90 font-medium">全局目标参数：</span>
-                <div class="flex space-x-3">
-                    <label class="flex items-center space-x-1">
-                        <span class="text-xs opacity-80">纸灰分%</span>
-                        <input type="number" inputmode="decimal" v-model.number="targetAsh" class="w-12 bg-white text-blue-900 px-1 py-0.5 rounded text-center font-bold">
+    <!-- 顶部栏（更扁） -->
+    <div class="sticky top-0 z-10 bg-blue-600 text-white shadow rounded-b-xl mb-2">
+        <div class="px-3 pt-2 pb-2">
+            <div class="flex justify-between items-center mb-1.5">
+                <a href="home.html" class="text-[11px] bg-blue-700 px-2 py-0.5 rounded-md text-blue-100 border border-blue-400/30">← 工具箱</a>
+                <h1 class="text-base font-bold">原料成本计算器</h1>
+                <button @click="resetToDefault" class="text-[11px] bg-blue-500/90 px-2 py-0.5 rounded-md border border-blue-400/30">重置</button>
+            </div>
+
+            <div class="flex justify-between items-center text-xs bg-blue-700/50 px-2 py-1.5 rounded-lg">
+                <span class="opacity-90">目标参数</span>
+                <div class="flex items-center gap-2">
+                    <label class="flex items-center gap-1">
+                        <span class="opacity-80 text-[11px]">灰分</span>
+                        <input type="number" inputmode="decimal" v-model.number="targetAsh"
+                               class="w-11 bg-white text-blue-900 px-1 py-0.5 rounded text-center font-bold compact-input">
                     </label>
-                    <label class="flex items-center space-x-1">
-                        <span class="text-xs opacity-80">纸水分%</span>
-                        <input type="number" inputmode="decimal" v-model.number="targetMoisture" class="w-12 bg-white text-blue-900 px-1 py-0.5 rounded text-center font-bold">
+                    <label class="flex items-center gap-1">
+                        <span class="opacity-80 text-[11px]">水分</span>
+                        <input type="number" inputmode="decimal" v-model.number="targetMoisture"
+                               class="w-11 bg-white text-blue-900 px-1 py-0.5 rounded text-center font-bold compact-input">
                     </label>
                 </div>
             </div>
-            
-            <div class="mt-2 text-[10px] text-blue-100/70 text-center">
-                💡 修改任何数字自动保存到手机，下次打开直接生效
+            <div class="mt-1 text-[10px] text-blue-100/70 text-center">改数自动保存 · 综合成本=得率成本+电耗</div>
+        </div>
+    </div>
+
+    <!-- 列表（更紧） -->
+    <div class="px-2 space-y-2">
+        <div v-for="(item, index) in materials" :key="index"
+             class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+            <!-- 头：名称 + 综合成本 -->
+            <div class="flex justify-between items-center px-3 py-2 bg-gray-50 border-b border-gray-100">
+                <div class="min-w-0 pr-2">
+                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">{{ item.category }}</span>
+                    <div class="text-[15px] font-bold text-gray-800 leading-tight mt-0.5 truncate">{{ item.name }}</div>
+                </div>
+                <div class="text-right shrink-0">
+                    <div class="text-[10px] text-gray-400 leading-none">综合成本</div>
+                    <div class="text-xl font-black text-red-600 leading-tight">{{ formatNum(calcTotal(item), 0) }}</div>
+                </div>
+            </div>
+
+            <!-- 参数区：更密 -->
+            <div class="px-2.5 py-2">
+                <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+                    <div class="col-span-2">
+                        <label class="text-[10px] text-gray-500">采购价</label>
+                        <input type="number" inputmode="decimal" v-model.number="item.price"
+                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-800 font-bold">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-500">电耗</label>
+                        <input type="number" inputmode="decimal" v-model.number="item.elec"
+                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-800 font-bold">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-500">流失%</label>
+                        <input type="number" inputmode="decimal" v-model.number="item.loss"
+                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-700">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-500">灰分%</label>
+                        <input type="number" inputmode="decimal" v-model.number="item.ash"
+                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-700">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-500">水分%</label>
+                        <input type="number" inputmode="decimal" v-model.number="item.moisture"
+                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-700">
+                    </div>
+                    <div class="col-span-2 flex items-end">
+                        <div class="w-full grid grid-cols-3 gap-1 bg-blue-50 border border-blue-100 rounded-lg px-1 py-1 text-center">
+                            <div>
+                                <div class="text-[9px] text-blue-600/80">得率%</div>
+                                <div class="text-xs font-bold text-blue-950">{{ formatNum(calcYield(item), 1) }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[9px] text-blue-600/80">消耗</div>
+                                <div class="text-xs font-bold text-blue-950">{{ formatNum(calcConsumption(item), 0) }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[9px] text-blue-600/80">得率成本</div>
+                                <div class="text-xs font-bold text-blue-950">{{ formatNum(calcYieldCost(item), 0) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 卡片列表区 -->
-    <div class="px-3 space-y-4">
-        <div v-for="(item, index) in materials" :key="index" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            
-            <!-- 卡片头部：名称与最终成本 (高亮) -->
-            <div class="flex justify-between items-center p-4 bg-gray-50/80 border-b border-gray-100">
-                <div>
-                    <span class="text-[11px] font-bold text-blue-600 bg-blue-100/80 px-2 py-0.5 rounded-md">{{ item.category }}</span>
-                    <h2 class="text-lg font-bold text-gray-800 mt-1">{{ item.name }}</h2>
-                </div>
-                <div class="text-right">
-                    <div class="text-[11px] text-gray-400 mb-0.5">综合成本 (元/吨)</div>
-                    <div class="text-2xl font-black text-red-600 tracking-tight">{{ formatNum(calcTotal(item), 0) }}</div>
-                </div>
-            </div>
-
-            <!-- 参数修改区 -->
-            <div class="p-4">
-                <div class="grid grid-cols-2 gap-x-3 gap-y-3 mb-4">
-                    <div class="flex flex-col">
-                        <label class="text-xs text-gray-500 mb-1">现采购价格</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.price" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-xs text-gray-500 mb-1">电耗成本</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.elec" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-xs text-gray-500 mb-1">灰分 %</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.ash" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-xs text-gray-500 mb-1">水分 %</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.moisture" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="flex flex-col col-span-2">
-                        <label class="text-xs text-gray-500 mb-1">综合流失 %</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.loss" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                </div>
-
-                <!-- 自动计算结果预览区 (只读) -->
-                <div class="bg-blue-50/60 rounded-xl p-3 border border-blue-100">
-                    <div class="grid grid-cols-3 gap-1 text-center divide-x divide-blue-200/60">
-                        <div>
-                            <div class="text-[10px] text-blue-600/80 mb-0.5">得率 %</div>
-                            <div class="text-sm font-bold text-blue-950">{{ formatNum(calcYield(item), 1) }}</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-blue-600/80 mb-0.5">吨纸消耗(kg)</div>
-                            <div class="text-sm font-bold text-blue-950">{{ formatNum(calcConsumption(item), 0) }}</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-blue-600/80 mb-0.5">得率成本(元)</div>
-                            <div class="text-sm font-bold text-blue-950">{{ formatNum(calcYieldCost(item), 0) }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-        </div>
+    <div class="text-center text-[10px] text-gray-400 mt-3 px-4">
+        得率 = 100 − 灰分 − 水分 − 流失 + 目标灰分 + 目标水分
     </div>
 </div>
 
 <script>
 const { createApp } = Vue;
 
-// 原始初始默认数据
 const DEFAULT_MATERIALS = [
     { category: '白纸类', name: '混合白', ash: 31.0, moisture: 12.0, loss: 1.0, price: 2160, elec: 60 },
     { category: '白纸类', name: '国杂', ash: 25.0, moisture: 12.0, loss: 4.0, price: 2150, elec: 60 },
@@ -144,12 +150,9 @@ createApp({
         }
     },
     mounted() {
-        // 打开时自动读取 iPhone 上之前修改过的数字
         const savedData = localStorage.getItem('paper_calc_materials');
         const savedTargets = localStorage.getItem('paper_calc_targets');
-        if (savedData) {
-            try { this.materials = JSON.parse(savedData); } catch(e) {}
-        }
+        if (savedData) { try { this.materials = JSON.parse(savedData); } catch(e) {} }
         if (savedTargets) {
             try {
                 const t = JSON.parse(savedTargets);
@@ -159,11 +162,8 @@ createApp({
         }
     },
     watch: {
-        // 数据变动实时自动写入手机本地存储
         materials: {
-            handler(newVal) {
-                localStorage.setItem('paper_calc_materials', JSON.stringify(newVal));
-            },
+            handler(v) { localStorage.setItem('paper_calc_materials', JSON.stringify(v)); },
             deep: true
         },
         targetAsh() { this.saveTargets(); },
@@ -172,13 +172,11 @@ createApp({
     methods: {
         saveTargets() {
             localStorage.setItem('paper_calc_targets', JSON.stringify({
-                ash: this.targetAsh,
-                moisture: this.targetMoisture
+                ash: this.targetAsh, moisture: this.targetMoisture
             }));
         },
-        // 重置按钮逻辑
         resetToDefault() {
-            if(confirm('确定要恢复到原始图表默认值吗？所有修改将被覆盖。')) {
+            if (confirm('确定恢复原始默认值？')) {
                 this.targetAsh = 15;
                 this.targetMoisture = 8;
                 this.materials = JSON.parse(JSON.stringify(DEFAULT_MATERIALS));
@@ -190,12 +188,12 @@ createApp({
             return 100 - (item.ash || 0) - (item.moisture || 0) - (item.loss || 0) + this.targetAsh + this.targetMoisture;
         },
         calcConsumption(item) {
-            let yieldVal = this.calcYield(item);
-            return yieldVal <= 0 ? 0 : 1000 / (yieldVal / 100);
+            const y = this.calcYield(item);
+            return y <= 0 ? 0 : 1000 / (y / 100);
         },
         calcYieldCost(item) {
-            let yieldVal = this.calcYield(item);
-            return yieldVal <= 0 ? 0 : (item.price || 0) / (yieldVal / 100);
+            const y = this.calcYield(item);
+            return y <= 0 ? 0 : (item.price || 0) / (y / 100);
         },
         calcTotal(item) {
             return this.calcYieldCost(item) + (item.elec || 0);
@@ -206,5 +204,7 @@ createApp({
     }
 }).mount('#app');
 </script>
+</body>
+</html>
 </body>
 </html>
