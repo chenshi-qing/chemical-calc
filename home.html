@@ -8,56 +8,70 @@
 </head>
 <body class="bg-gray-100 p-5">
     <div class="max-w-md mx-auto">
-        <div class="text-center mb-8 mt-4">
+        <div class="text-center mb-6 mt-2">
             <h1 class="text-2xl font-black text-gray-800">计算工具箱</h1>
-            <p class="text-gray-500 text-sm mt-1">选择要使用的计算器</p>
+            <p class="text-gray-500 text-sm mt-1">请选择你要使用的计算器</p>
         </div>
 
         <div class="space-y-3">
-            <a href="feizhiCB.html" class="block bg-white p-4 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
+            <!-- 1. 瓦楞纸 -->
+            <a href="feizhiCB.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-blue-100 text-blue-700 font-black rounded-xl flex items-center justify-center">瓦</div>
+                    <div class="w-11 h-11 bg-blue-100 text-blue-700 font-black rounded-xl flex items-center justify-center text-lg">瓦</div>
                     <div>
-                        <div class="font-bold text-gray-900">42g 瓦楞纸原料成本</div>
-                        <div class="text-xs text-gray-400">灰分 / 得率 / 综合成本</div>
+                        <div class="font-bold text-gray-900 text-sm">42g 瓦楞纸原料成本</div>
+                        <div class="text-xs text-gray-400 mt-0.5">灰分 / 得率 / 综合成本</div>
                     </div>
                 </div>
             </a>
 
-            <a href="index.html" class="block bg-white p-4 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
+            <!-- 2. 工艺及需求 (新增) -->
+            <a href="原料工艺及需求.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-purple-100 text-purple-700 font-black rounded-xl flex items-center justify-center">化</div>
+                    <div class="w-11 h-11 bg-cyan-100 text-cyan-700 font-black rounded-xl flex items-center justify-center text-lg">工</div>
                     <div>
-                        <div class="font-bold text-gray-900">化学品计算器</div>
-                        <div class="text-xs text-gray-400">原主页 · index.html</div>
+                        <div class="font-bold text-gray-900 text-sm">原料工艺及需求</div>
+                        <div class="text-xs text-gray-400 mt-0.5">配比 / 价格 / 得率汇总</div>
                     </div>
                 </div>
             </a>
 
-            <a href="waste-paper-cost-calculator.html" class="block bg-white p-4 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
+            <!-- 3. 化学品 -->
+            <a href="index.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-green-100 text-green-700 font-black rounded-xl flex items-center justify-center">废</div>
+                    <div class="w-11 h-11 bg-purple-100 text-purple-700 font-black rounded-xl flex items-center justify-center text-lg">化</div>
                     <div>
-                        <div class="font-bold text-gray-900">废纸采购成本</div>
-                        <div class="text-xs text-gray-400">常规采购价格核算</div>
+                        <div class="font-bold text-gray-900 text-sm">化学品计算器</div>
+                        <div class="text-xs text-gray-400 mt-0.5">原主页 · index.html</div>
                     </div>
                 </div>
             </a>
 
-            <a href="pulp-cost-calculator.html" class="block bg-white p-4 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
+            <!-- 4. 废纸采购 -->
+            <a href="waste-paper-cost-calculator.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-orange-100 text-orange-700 font-black rounded-xl flex items-center justify-center">浆</div>
+                    <div class="w-11 h-11 bg-green-100 text-green-700 font-black rounded-xl flex items-center justify-center text-lg">废</div>
                     <div>
-                        <div class="font-bold text-gray-900">湿浆 / 自制浆核算</div>
-                        <div class="text-xs text-gray-400">电耗与流失率分析</div>
+                        <div class="font-bold text-gray-900 text-sm">废纸采购成本</div>
+                        <div class="text-xs text-gray-400 mt-0.5">常规采购价格核算</div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 5. 湿浆核算 -->
+            <a href="pulp-cost-calculator.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 bg-orange-100 text-orange-700 font-black rounded-xl flex items-center justify-center text-lg">浆</div>
+                    <div>
+                        <div class="font-bold text-gray-900 text-sm">湿浆 / 自制浆核算</div>
+                        <div class="text-xs text-gray-400 mt-0.5">电耗与流失率分析</div>
                     </div>
                 </div>
             </a>
         </div>
 
-        <p class="text-center text-gray-400 text-xs mt-10">
-            建议只保存这一个页面到手机主屏幕<br>
-            一个入口管理全部计算器
+        <p class="text-center text-gray-400 text-xs mt-8">
+            iPhone 15 Pro Max 专属优化界面
         </p>
     </div>
 </body>
