@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- 针对 iPhone 优化：禁止默认缩放，保证良好触控体验 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>42g瓦楞纸原料成本计算器</title>
+    <!-- 引入 Tailwind CSS 用于快速UI布局 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Vue 3 用于数据双向绑定和实时计算 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        /* 自定义滚动条及部分细节优化 */
+        body { background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
+        input[type="number"] { -moz-appearance: textfield; }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        /* 强制 iOS 输入框不缩放 */
+        input { font-size: 16px !important; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="pb-10 max-w-md mx-auto relative">
+    
+    <!-- 顶部固定栏 -->
+    <div class="sticky top-0 z-10 bg-blue-600 text-white shadow-md rounded-b-2xl mb-4">
+        <div class="p-4">
+            <h1 class="text-xl font-bold text-center mb-3">原料成本计算器</h1>
+            <div class="flex justify-between items-center text-sm bg-blue-700/50 p-2 rounded-lg">
+                <span class="opacity-80">全局目标参数：</span>
+                <div class="flex space-x-3">
+                    <label class="flex items-center space-x-1">
+                        <span>纸灰分%</span>
+                        <input type="number" inputmode="decimal" v-model.number="targetAsh" class="w-12 bg-white text-blue-900 px-1 py-0.5 rounded text-center">
+                    </label>
+                    <label class="flex items-center space-x-1">
+                        <span>纸水分%</span>
+                        <input type="number" inputmode="decimal" v-model.number="targetMoisture" class="w-12 bg-white text-blue-900 px-1 py-0.5 rounded text-center">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 列表区 -->
+    <div class="px-3 space-y-4">
+        <div v-for="(item, index) in materials" :key="index" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            
+            <!-- 卡片头部：名称与最终成本 (高亮) -->
+            <div class="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-100">
+                <div>
+                    <span class="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded">{{ item.category }}</span>
+                    <h2 class="text-lg font-bold text-gray-800 mt-1">{{ item.name }}</h2>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-500 mb-1">综合成本 (元/吨)</div>
+                    <div class="text-2xl font-black text-red-600">{{ formatNum(calcTotal(item), 0) }}</div>
+                </div>
+            </div>
+
+            <!-- 可修改参数输入区 -->
+            <div class="p-4">
+                <div class="grid grid-cols-2 gap-x-4 gap-y-3 mb-4">
+                    <!-- 输入组 -->
+                    <div class="flex flex-col">
+                        <label class="text-xs text-gray-500 mb-1">现采购价格</label>
+                        <input type="number" inputmode="decimal" v-model.number="item.price" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-800 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-xs text-gray-500 mb-1">电耗成本</label>
+                        <input type="number" inputmode="decimal" v-model.number="item.elec" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-800 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-xs text-gray-500 mb-1">灰分 %</label>
+                        <input type="number" inputmode="decimal" v-model.number="item.ash" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-xs text-gray-500 mb-1">水分 %</label>
+                        <input type="number" inputmode="decimal" v-model.number="item.moisture" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-xs text-gray-500 mb-1">综合流失 %</label>
+                        <input type="number" inputmode="decimal" v-model.number="item.loss" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- 自动计算结果展示区 (只读) -->
+                <div class="bg-blue-50/50 rounded-xl p-3 border border-blue-100">
+                    <div class="grid grid-cols-3 gap-2 text-center divide-x divide-blue-200">
+                        <div>
+                            <div class="text-[10px] text-blue-600/70 mb-0.5">得率 %</div>
+                            <div class="text-sm font-bold text-blue-900">{{ formatNum(calcYield(item), 1) }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-blue-600/70 mb-0.5">吨纸消耗</div>
+                            <div class="text-sm font-bold text-blue-900">{{ formatNum(calcConsumption(item), 0) }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-blue-600/70 mb-0.5">得率成本</div>
+                            <div class="text-sm font-bold text-blue-900">{{ formatNum(calcYieldCost(item), 0) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+    data() {
+        return {
+            // 图表底部公式常量：15个纸灰分 + 8个纸水分
+            targetAsh: 15,
+            targetMoisture: 8,
+            // 预录入图表中所有数据（省略了与成本计算无关的抗张、叩解度、湿重，以保证界面清爽）
+            materials: [
+                { category: '白纸类', name: '混合白', ash: 31.0, moisture: 12.0, loss: 1.0, price: 2160, elec: 60 },
+                { category: '白纸类', name: '国杂', ash: 25.0, moisture: 12.0, loss: 4.0, price: 2150, elec: 60 },
+                { category: '白纸类', name: '混合国杂', ash: 25.0, moisture: 12.0, loss: 4.0, price: 2150, elec: 60 },
+                { category: '白纸类', name: '低白双胶杂纸', ash: 26.0, moisture: 12.0, loss: 1.0, price: 2150, elec: 60 },
+                { category: '白纸类', name: '工厂书边纸', ash: 27.5, moisture: 12.0, loss: 1.0, price: 2010, elec: 60 },
+                { category: '白纸类', name: '无碳废纸', ash: 21.0, moisture: 12.0, loss: 4.5, price: 2030, elec: 60 },
+                { category: '白纸类', name: '印花纸', ash: 9.3, moisture: 14.0, loss: 4.5, price: 2030, elec: 60 },
+                { category: '白纸类', name: '保密局浆', ash: 22.0, moisture: 10.0, loss: 1.0, price: 1740, elec: 60 },
+                { category: '黄板类', name: '坑卡', ash: 24.0, moisture: 12.0, loss: 14.0, price: 1880, elec: 60 },
+                { category: '黄板类', name: '箱板纸A', ash: 22.0, moisture: 12.0, loss: 10.0, price: 2000, elec: 60 },
+                { category: '黄板类', name: '箱板纸特级', ash: 19.0, moisture: 12.0, loss: 6.0, price: 2170, elec: 60 },
+                { category: '湿浆类', name: '本色竹浆', ash: 5.0, moisture: 10.0, loss: 2.0, price: 2570, elec: 90 },
+                { category: '湿浆类', name: '自制中温浆', ash: 3.5, moisture: 8.0, loss: 25.0, price: 1920, elec: 219 },
+                { category: '湿浆类', name: '中温湿浆', ash: 3.5, moisture: 10.0, loss: 2.0, price: 2550, elec: 60 },
+            ]
+        }
+    },
+    methods: {
+        // 计算得率: 100 - 灰分 - 水分 - 流失(杂质) + 目标灰分 + 目标水分
+        calcYield(item) {
+            return 100 - (item.ash || 0) - (item.moisture || 0) - (item.loss || 0) + this.targetAsh + this.targetMoisture;
+        },
+        // 计算吨纸消耗: 1000 / 得率(%)
+        calcConsumption(item) {
+            let yieldVal = this.calcYield(item);
+            if(yieldVal <= 0) return 0;
+            return 1000 / (yieldVal / 100);
+        },
+        // 计算得率成本: 采购价格 / 得率(%)
+        calcYieldCost(item) {
+            let yieldVal = this.calcYield(item);
+            if(yieldVal <= 0) return 0;
+            return (item.price || 0) / (yieldVal / 100);
+        },
+        // 计算综合成本: 得率成本 + 电耗成本
+        calcTotal(item) {
+            return this.calcYieldCost(item) + (item.elec || 0);
+        },
+        // 格式化数字，保留指定小数位并四舍五入
+        formatNum(num, decimals) {
+            return Number(num).toFixed(decimals);
+        }
+    }
+}).mount('#app')
+</script>
+</body>
+</html>
