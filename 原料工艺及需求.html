@@ -24,4 +24,413 @@
     }
     .top-bar h1 { font-size: 0.85rem; font-weight: 700; }
     .top-bar a, .top-bar button {
-      font-size: 0.65rem; background: #334155; 
+      font-size: 0.65rem; background: #334155; color: #cbd5e1;
+      padding: 2px 7px; border-radius: 4px; text-decoration: none;
+      border: 1px solid #475569; cursor: pointer;
+    }
+
+    /* 折叠设置面板 */
+    details.config-panel {
+      background: #fff; border: 1px solid #cbd5e1; border-radius: 6px;
+      padding: 4px 8px; margin-bottom: 4px;
+    }
+    details.config-panel summary {
+      font-weight: 600; color: #475569; font-size: 0.72rem; cursor: pointer;
+    }
+    .top-inputs {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 4px; margin-top: 4px;
+    }
+    .input-group label { font-size: 0.6rem; color: #64748b; display: block; margin-bottom: 1px; }
+    .input-group input {
+      width: 100%; padding: 2px 4px; border: 1px solid #cbd5e1;
+      border-radius: 4px; font-size: 16px !important; font-weight: bold;
+    }
+
+    /* 顶部数据汇总网格 (6 格) */
+    .top-summary {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 3px; margin-bottom: 4px;
+    }
+    .top-summary .box {
+      background: #fff; border-radius: 5px; padding: 3px 2px;
+      text-align: center; border: 1px solid #cbd5e1;
+    }
+    .top-summary label { font-size: 0.58rem; color: #64748b; display: block; line-height: 1; }
+    .top-summary span { font-size: 0.78rem; font-weight: bold; color: #0f172a; }
+    .top-summary .red { color: #dc2626; }
+    .top-summary .green { color: #059669; }
+    .top-summary .blue { color: #2563eb; }
+
+    /* 手机端卡片列表（极致压缩） */
+    .mobile-list { display: flex; flex-direction: column; gap: 4px; }
+    .item-card {
+      background: #fff; border-radius: 6px;
+      padding: 5px 6px; border-left: 3px solid #2563eb;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 3px; padding-bottom: 2px; border-b: 1px dashed #f1f5f9;
+    }
+    .card-title-group { display: flex; items-center; gap: 4px; }
+    .card-title { font-weight: bold; font-size: 0.82rem; }
+    .card-tag {
+      font-size: 0.58rem; background: #eff6ff; color: #2563eb;
+      padding: 0px 4px; border-radius: 3px; font-weight: 600;
+    }
+    .card-cost { font-size: 0.75rem; font-weight: bold; color: #dc2626; }
+
+    /* 卡片输入区 (6 列超紧凑) */
+    .card-grid-inputs {
+      display: grid; grid-template-columns: repeat(6, 1fr);
+      gap: 2px; margin-bottom: 3px;
+    }
+    .field-box {
+      background: #f8fafc; padding: 2px; border-radius: 4px; text-align: center;
+    }
+    .field-box label { font-size: 0.55rem; color: #64748b; display: block; line-height: 1; scale: 0.9; }
+    .field-box input {
+      width: 100%; border: 1px solid #cbd5e1; border-radius: 3px;
+      padding: 1px 0; font-size: 16px !important; /* iOS 防放大 */
+      font-weight: 700; text-align: center; background: #fff; margin-top: 1px;
+    }
+    
+    /* 卡片输出区 (4 列) */
+    .card-outputs {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 2px; background: #f1f5f9; padding: 3px; border-radius: 4px;
+    }
+    .out-box { text-align: center; }
+    .out-box label { font-size: 0.55rem; color: #64748b; display: block; line-height: 1; }
+    .out-val { font-weight: bold; font-size: 0.75rem; color: #0f172a; margin-top: 1px; }
+    .out-val.red { color: #dc2626; }
+    .out-val.green { color: #059669; }
+
+    /* PC 端表格视图 */
+    .pc-table-wrapper { display: none; }
+    @media (min-width: 850px) {
+      .mobile-list { display: none; }
+      .pc-table-wrapper {
+        display: block; overflow-x: auto; background: #fff;
+        border-radius: 6px; padding: 6px;
+      }
+      table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+      th, td { border: 1px solid #cbd5e1; padding: 4px 2px; text-align: center; }
+      th { background-color: #f1f5f9; font-size: 0.7rem; }
+      input.cell-input {
+        width: 95%; padding: 2px; border: 1px solid #cbd5e1;
+        border-radius: 3px; text-align: center; font-size: 12px; font-weight: bold;
+      }
+      tfoot td { background: #fef3c7; font-weight: bold; font-size: 0.78rem; }
+    }
+
+    /* 底部固定汇总栏 */
+    .bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #0f172a; color: #fff;
+      padding: 5px 6px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.15); z-index: 100;
+    }
+    .bar-stat { text-align: center; }
+    .bar-stat label { font-size: 0.55rem; color: #94a3b8; display: block; line-height: 1; }
+    .bar-stat span { font-size: 0.8rem; font-weight: bold; }
+    .bar-stat .red { color: #f87171; }
+    .bar-stat .green { color: #34d399; }
+    .bar-stat .yellow { color: #fbbf24; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 顶栏导航 -->
+  <div class="top-bar">
+    <a href="home.html">← 工具箱</a>
+    <h1>原料工艺及需求核算</h1>
+    <button onclick="resetAll()">重置</button>
+  </div>
+
+  <!-- 折叠基础参数设置 -->
+  <details class="config-panel">
+    <summary>⚙️ 基础排产参数（点击展开修改）</summary>
+    <div class="top-inputs">
+      <div class="input-group">
+        <label>排产计划 (吨)</label>
+        <input type="number" inputmode="decimal" id="planTons" value="9000" oninput="calculateAll()">
+      </div>
+      <div class="input-group">
+        <label>日产能 (吨/日)</label>
+        <input type="number" inputmode="decimal" id="dailyCapacity" value="400" oninput="calculateAll()">
+      </div>
+      <div class="input-group">
+        <label>装载量 (吨/车)</label>
+        <input type="number" inputmode="decimal" id="truckCapacity" value="30" oninput="calculateAll()">
+      </div>
+    </div>
+  </details>
+
+  <!-- 顶部数据总览 -->
+  <div class="top-summary">
+    <div class="box"><label>配比合计</label><span id="sumPlanPct" class="blue">0%</span></div>
+    <div class="box"><label>加权得率</label><span id="sumYield" class="green">0%</span></div>
+    <div class="box"><label>加权原料价</label><span id="sumPrice">0</span></div>
+    <div class="box"><label>加权得率成本</label><span id="sumCost" class="red">0</span></div>
+    <div class="box"><label>日用量总计</label><span id="sumDaily">0 吨</span></div>
+    <div class="box"><label>排产缺口</label><span id="sumDemand" class="red">0 吨</span></div>
+  </div>
+
+  <!-- 手机端卡片列表 -->
+  <div class="mobile-list" id="mobileList"></div>
+
+  <!-- PC端表格 -->
+  <div class="pc-table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>分类</th><th>名称</th><th>配比%</th>
+          <th>价格(元)</th><th>得率%</th><th>得率成本</th>
+          <th>包数</th><th>包重</th><th>库存(吨)</th>
+          <th>日用量(吨)</th><th>车数</th><th>可用天数</th><th>缺口(吨)</th>
+        </tr>
+      </thead>
+      <tbody id="pcTableBody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2">合计 / 加权平均</td>
+          <td id="pcSumPlanPct">0%</td>
+          <td id="pcSumPrice">0</td>
+          <td id="pcSumYield">0%</td>
+          <td id="pcSumCost">0</td>
+          <td colspan="2">-</td>
+          <td id="pcSumStock">0</td>
+          <td id="pcSumDaily">0</td>
+          <td>-</td><td>-</td>
+          <td id="pcSumDemand">0</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- 底部固定汇总 -->
+<div class="bottom-bar">
+  <div class="bar-stat">
+    <label>配比 / 得率</label>
+    <span id="barYield" class="green">0% / 0%</span>
+  </div>
+  <div class="bar-stat">
+    <label>加权得率成本</label>
+    <span id="barCost" class="yellow">0</span>
+  </div>
+  <div class="bar-stat">
+    <label>日原料用量</label>
+    <span id="barDaily">0 吨</span>
+  </div>
+  <div class="bar-stat">
+    <label>排产缺口</label>
+    <span id="barDemand" class="red">0 吨</span>
+  </div>
+</div>
+
+<script>
+// 默认标准数据
+const defaultRows = [
+  { category: "黄纸类", name: "箱板纸A",   planPct: 30, price: 2000, yieldPct: 79,   packs: 5, weight: 1, stock: 390 },
+  { category: "黄纸类", name: "特级黄板",   planPct: 20, price: 2170, yieldPct: 86,   packs: 4, weight: 1, stock: 808 },
+  { category: "白纸类", name: "印花纸",     planPct: 5,  price: 2030, yieldPct: 95.2, packs: 1, weight: 1, stock: 179 },
+  { category: "白纸类", name: "保密局纸浆", planPct: 5,  price: 1740, yieldPct: 90,   packs: 1, weight: 1, stock: 122 },
+  { category: "白纸类", name: "低白双胶",   planPct: 5,  price: 2150, yieldPct: 84,   packs: 1, weight: 1, stock: 389 },
+  { category: "纤维浆", name: "中温湿浆",   planPct: 10, price: 2550, yieldPct: 107.5,packs: 2, weight: 1, stock: 11  },
+  { category: "纤维浆", name: "自制中温浆", planPct: 5,  price: 1920, yieldPct: 86.5, packs: 1, weight: 1, stock: 78  },
+  { category: "纤维浆", name: "本色竹浆",   planPct: 15, price: 2570, yieldPct: 106,  packs: 3, weight: 1, stock: 52  },
+  { category: "纤维浆", name: "污泥",       planPct: 5,  price: 0,    yieldPct: 50,   packs: 1, weight: 3, stock: 0   }
+];
+
+let rowData = [];
+
+// 初始化读取
+function init() {
+  loadData();
+  loadTop();
+  calculateAll();
+}
+
+function loadData() {
+  const saved = localStorage.getItem('gy_data_v2');
+  if (saved) {
+    try { rowData = JSON.parse(saved); return; } catch(e){}
+  }
+  rowData = JSON.parse(JSON.stringify(defaultRows));
+}
+
+function saveData() {
+  localStorage.setItem('gy_data_v2', JSON.stringify(rowData));
+  localStorage.setItem('gy_top_v2', JSON.stringify({
+    planTons: document.getElementById('planTons').value,
+    dailyCapacity: document.getElementById('dailyCapacity').value,
+    truckCapacity: document.getElementById('truckCapacity').value
+  }));
+}
+
+function loadTop() {
+  const t = localStorage.getItem('gy_top_v2');
+  if (t) {
+    try {
+      const obj = JSON.parse(t);
+      if(obj.planTons) document.getElementById('planTons').value = obj.planTons;
+      if(obj.dailyCapacity) document.getElementById('dailyCapacity').value = obj.dailyCapacity;
+      if(obj.truckCapacity) document.getElementById('truckCapacity').value = obj.truckCapacity;
+    } catch(e){}
+  }
+}
+
+function resetAll() {
+  if(confirm('确定要恢复默认初始数据吗？')) {
+    localStorage.removeItem('gy_data_v2');
+    localStorage.removeItem('gy_top_v2');
+    document.getElementById('planTons').value = 9000;
+    document.getElementById('dailyCapacity').value = 400;
+    document.getElementById('truckCapacity').value = 30;
+    rowData = JSON.parse(JSON.stringify(defaultRows));
+    calculateAll();
+  }
+}
+
+// 核心计算与渲染
+function calculateAll() {
+  const planTons = parseFloat(document.getElementById('planTons').value) || 0;
+  const dailyCapacity = parseFloat(document.getElementById('dailyCapacity').value) || 0;
+  const truckCapacity = parseFloat(document.getElementById('truckCapacity').value) || 1;
+
+  let sumPlanPct = 0;
+  let sumWeightedYield = 0;
+  let sumWeightedPrice = 0;
+  let sumWeightedCost = 0;
+  let sumDailyUse = 0;
+  let sumStock = 0;
+  let sumDemand = 0;
+
+  // 1. 计算加权综合得率
+  rowData.forEach(r => {
+    const pct = parseFloat(r.planPct) || 0;
+    const y = parseFloat(r.yieldPct) || 0;
+    const p = parseFloat(r.price) || 0;
+    
+    sumPlanPct += pct;
+    sumWeightedYield += (pct * y) / 100;
+    sumWeightedPrice += (pct * p) / 100;
+    if (y > 0) {
+      sumWeightedCost += (pct * (p / (y / 100))) / 100;
+    }
+  });
+
+  // 日原料总用量 = 日产能 / (加权得率/100)
+  const totalDailyRawMaterial = sumWeightedYield > 0 ? (dailyCapacity / (sumWeightedYield / 100)) : 0;
+  // 计划原料总需求量 = 计划排产 / (加权得率/100)
+  const totalPlanRawMaterial = sumWeightedYield > 0 ? (planTons / (sumWeightedYield / 100)) : 0;
+
+  const mobileContainer = document.getElementById('mobileList');
+  const pcContainer = document.getElementById('pcTableBody');
+  mobileContainer.innerHTML = '';
+  pcContainer.innerHTML = '';
+
+  rowData.forEach((item, idx) => {
+    const pct = parseFloat(item.planPct) || 0;
+    const price = parseFloat(item.price) || 0;
+    const yieldPct = parseFloat(item.yieldPct) || 0;
+    const stock = parseFloat(item.stock) || 0;
+
+    // 单项计算
+    const yieldCost = yieldPct > 0 ? (price / (yieldPct / 100)) : 0;
+    const itemDailyUse = totalDailyRawMaterial * (pct / 100);
+    const itemTrucks = truckCapacity > 0 ? (itemDailyUse / truckCapacity) : 0;
+    const itemDays = itemDailyUse > 0 ? (stock / itemDailyUse) : 0;
+    const itemPlanDemand = totalPlanRawMaterial * (pct / 100);
+    const itemGap = Math.max(0, itemPlanDemand - stock);
+
+    sumDailyUse += itemDailyUse;
+    sumStock += stock;
+    sumDemand += itemGap;
+
+    // 渲染手机卡片
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-title-group">
+          <span class="card-tag">${item.category}</span>
+          <span class="card-title">${item.name}</span>
+        </div>
+        <div class="card-cost">成本: ¥${yieldCost.toFixed(0)}/吨</div>
+      </div>
+      <div class="card-grid-inputs">
+        <div class="field-box"><label>配比%</label><input type="number" inputmode="decimal" value="${item.planPct}" onchange="updateItem(${idx}, 'planPct', this.value)"></div>
+        <div class="field-box"><label>价格</label><input type="number" inputmode="decimal" value="${item.price}" onchange="updateItem(${idx}, 'price', this.value)"></div>
+        <div class="field-box"><label>得率%</label><input type="number" inputmode="decimal" value="${item.yieldPct}" onchange="updateItem(${idx}, 'yieldPct', this.value)"></div>
+        <div class="field-box"><label>包数</label><input type="number" inputmode="decimal" value="${item.packs}" onchange="updateItem(${idx}, 'packs', this.value)"></div>
+        <div class="field-box"><label>包重</label><input type="number" inputmode="decimal" value="${item.weight}" onchange="updateItem(${idx}, 'weight', this.value)"></div>
+        <div class="field-box"><label>库存</label><input type="number" inputmode="decimal" value="${item.stock}" onchange="updateItem(${idx}, 'stock', this.value)"></div>
+      </div>
+      <div class="card-outputs">
+        <div class="out-box"><label>日用量</label><div class="out-val">${itemDailyUse.toFixed(1)} 吨</div></div>
+        <div class="out-box"><label>车数</label><div class="out-val">${itemTrucks.toFixed(1)} 车</div></div>
+        <div class="out-box"><label>可用天</label><div class="out-val ${itemDays < 2 ? 'red' : 'green'}">${itemDays.toFixed(1)} 天</div></div>
+        <div class="out-box"><label>需求缺口</label><div class="out-val ${itemGap > 0 ? 'red' : ''}">${itemGap.toFixed(0)} 吨</div></div>
+      </div>
+    `;
+    mobileContainer.appendChild(card);
+
+    // 渲染 PC 表格
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.category}</td>
+      <td><strong>${item.name}</strong></td>
+      <td><input class="cell-input" type="number" value="${item.planPct}" onchange="updateItem(${idx}, 'planPct', this.value)"></td>
+      <td><input class="cell-input" type="number" value="${item.price}" onchange="updateItem(${idx}, 'price', this.value)"></td>
+      <td><input class="cell-input" type="number" value="${item.yieldPct}" onchange="updateItem(${idx}, 'yieldPct', this.value)"></td>
+      <td>¥${yieldCost.toFixed(0)}</td>
+      <td><input class="cell-input" type="number" value="${item.packs}" onchange="updateItem(${idx}, 'packs', this.value)"></td>
+      <td><input class="cell-input" type="number" value="${item.weight}" onchange="updateItem(${idx}, 'weight', this.value)"></td>
+      <td><input class="cell-input" type="number" value="${item.stock}" onchange="updateItem(${idx}, 'stock', this.value)"></td>
+      <td>${itemDailyUse.toFixed(1)}</td>
+      <td>${itemTrucks.toFixed(1)}</td>
+      <td class="${itemDays < 2 ? 'red' : ''}">${itemDays.toFixed(1)}</td>
+      <td class="${itemGap > 0 ? 'red' : ''}">${itemGap.toFixed(0)}</td>
+    `;
+    pcContainer.appendChild(tr);
+  });
+
+  // 更新所有汇总面板
+  document.getElementById('sumPlanPct').innerText = sumPlanPct.toFixed(1) + '%';
+  document.getElementById('sumYield').innerText = sumWeightedYield.toFixed(1) + '%';
+  document.getElementById('sumPrice').innerText = '¥' + sumWeightedPrice.toFixed(0);
+  document.getElementById('sumCost').innerText = '¥' + sumWeightedCost.toFixed(0);
+  document.getElementById('sumDaily').innerText = sumDailyUse.toFixed(0) + ' 吨';
+  document.getElementById('sumDemand').innerText = sumDemand.toFixed(0) + ' 吨';
+
+  document.getElementById('pcSumPlanPct').innerText = sumPlanPct.toFixed(1) + '%';
+  document.getElementById('pcSumPrice').innerText = '¥' + sumWeightedPrice.toFixed(0);
+  document.getElementById('pcSumYield').innerText = sumWeightedYield.toFixed(1) + '%';
+  document.getElementById('pcSumCost').innerText = '¥' + sumWeightedCost.toFixed(0);
+  document.getElementById('pcSumStock').innerText = sumStock.toFixed(0);
+  document.getElementById('pcSumDaily').innerText = sumDailyUse.toFixed(0);
+  document.getElementById('pcSumDemand').innerText = sumDemand.toFixed(0);
+
+  document.getElementById('barYield').innerText = sumPlanPct.toFixed(0) + '% / ' + sumWeightedYield.toFixed(1) + '%';
+  document.getElementById('barCost').innerText = '¥' + sumWeightedCost.toFixed(0);
+  document.getElementById('barDaily').innerText = sumDailyUse.toFixed(0) + ' 吨';
+  document.getElementById('barDemand').innerText = sumDemand.toFixed(0) + ' 吨';
+
+  saveData();
+}
+
+function updateItem(idx, key, val) {
+  rowData[idx][key] = parseFloat(val) || 0;
+  calculateAll();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
