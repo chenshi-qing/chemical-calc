@@ -3,208 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>42g瓦楞纸原料成本计算器</title>
+    <title>计算工具箱</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <style>
-        body { background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
-        input[type="number"] { -moz-appearance: textfield; }
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input { font-size: 16px !important; } /* 防止 iOS 自动放大 */
-        .compact-input {
-            padding: 6px 8px !important;
-            border-radius: 8px !important;
-            line-height: 1.2 !important;
-        }
-    </style>
 </head>
-<body>
-<div id="app" class="pb-8 max-w-md mx-auto">
-
-    <!-- 顶部栏（更扁） -->
-    <div class="sticky top-0 z-10 bg-blue-600 text-white shadow rounded-b-xl mb-2">
-        <div class="px-3 pt-2 pb-2">
-            <div class="flex justify-between items-center mb-1.5">
-                <a href="home.html" class="text-[11px] bg-blue-700 px-2 py-0.5 rounded-md text-blue-100 border border-blue-400/30">← 工具箱</a>
-                <h1 class="text-base font-bold">原料成本计算器</h1>
-                <button @click="resetToDefault" class="text-[11px] bg-blue-500/90 px-2 py-0.5 rounded-md border border-blue-400/30">重置</button>
-            </div>
-
-            <div class="flex justify-between items-center text-xs bg-blue-700/50 px-2 py-1.5 rounded-lg">
-                <span class="opacity-90">目标参数</span>
-                <div class="flex items-center gap-2">
-                    <label class="flex items-center gap-1">
-                        <span class="opacity-80 text-[11px]">灰分</span>
-                        <input type="number" inputmode="decimal" v-model.number="targetAsh"
-                               class="w-11 bg-white text-blue-900 px-1 py-0.5 rounded text-center font-bold compact-input">
-                    </label>
-                    <label class="flex items-center gap-1">
-                        <span class="opacity-80 text-[11px]">水分</span>
-                        <input type="number" inputmode="decimal" v-model.number="targetMoisture"
-                               class="w-11 bg-white text-blue-900 px-1 py-0.5 rounded text-center font-bold compact-input">
-                    </label>
-                </div>
-            </div>
-            <div class="mt-1 text-[10px] text-blue-100/70 text-center">改数自动保存 · 综合成本=得率成本+电耗</div>
+<body class="bg-gray-100 p-5">
+    <div class="max-w-md mx-auto">
+        <div class="text-center mb-6 mt-2">
+            <h1 class="text-2xl font-black text-gray-800">计算工具箱</h1>
+            <p class="text-gray-500 text-sm mt-1">选择要使用的计算器</p>
         </div>
-    </div>
 
-    <!-- 列表（更紧） -->
-    <div class="px-2 space-y-2">
-        <div v-for="(item, index) in materials" :key="index"
-             class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="space-y-3">
 
-            <!-- 头：名称 + 综合成本 -->
-            <div class="flex justify-between items-center px-3 py-2 bg-gray-50 border-b border-gray-100">
-                <div class="min-w-0 pr-2">
-                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">{{ item.category }}</span>
-                    <div class="text-[15px] font-bold text-gray-800 leading-tight mt-0.5 truncate">{{ item.name }}</div>
-                </div>
-                <div class="text-right shrink-0">
-                    <div class="text-[10px] text-gray-400 leading-none">综合成本</div>
-                    <div class="text-xl font-black text-red-600 leading-tight">{{ formatNum(calcTotal(item), 0) }}</div>
-                </div>
-            </div>
-
-            <!-- 参数区：更密 -->
-            <div class="px-2.5 py-2">
-                <div class="grid grid-cols-4 gap-1.5 mb-1.5">
-                    <div class="col-span-2">
-                        <label class="text-[10px] text-gray-500">采购价</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.price"
-                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-800 font-bold">
-                    </div>
+            <!-- 1. 瓦楞纸原料成本（feizhiCB.html） -->
+            <a href="feizhiCB.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 bg-blue-100 text-blue-700 font-black rounded-xl flex items-center justify-center text-lg">瓦</div>
                     <div>
-                        <label class="text-[10px] text-gray-500">电耗</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.elec"
-                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-800 font-bold">
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-500">流失%</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.loss"
-                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-700">
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-500">灰分%</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.ash"
-                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-700">
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-500">水分%</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.moisture"
-                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-700">
-                    </div>
-                    <div class="col-span-2 flex items-end">
-                        <div class="w-full grid grid-cols-3 gap-1 bg-blue-50 border border-blue-100 rounded-lg px-1 py-1 text-center">
-                            <div>
-                                <div class="text-[9px] text-blue-600/80">得率%</div>
-                                <div class="text-xs font-bold text-blue-950">{{ formatNum(calcYield(item), 1) }}</div>
-                            </div>
-                            <div>
-                                <div class="text-[9px] text-blue-600/80">消耗</div>
-                                <div class="text-xs font-bold text-blue-950">{{ formatNum(calcConsumption(item), 0) }}</div>
-                            </div>
-                            <div>
-                                <div class="text-[9px] text-blue-600/80">得率成本</div>
-                                <div class="text-xs font-bold text-blue-950">{{ formatNum(calcYieldCost(item), 0) }}</div>
-                            </div>
-                        </div>
+                        <div class="font-bold text-gray-900 text-sm">42g 瓦楞纸原料成本</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">feizhiCB.html · 灰分/得率/综合成本</div>
                     </div>
                 </div>
-            </div>
+            </a>
+
+            <!-- 2. 原料工艺及需求 -->
+            <a href="原料工艺及需求.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 bg-cyan-100 text-cyan-700 font-black rounded-xl flex items-center justify-center text-lg">工</div>
+                    <div>
+                        <div class="font-bold text-gray-900 text-sm">原料工艺及需求</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">原料工艺及需求.html · 配比/价格/得率</div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 3. 化学品 -->
+            <a href="index.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 bg-purple-100 text-purple-700 font-black rounded-xl flex items-center justify-center text-lg">化</div>
+                    <div>
+                        <div class="font-bold text-gray-900 text-sm">化学品计算器</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">index.html · 原主页</div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 4. 废纸采购成本 -->
+            <a href="waste-paper-cost-calculator.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 bg-green-100 text-green-700 font-black rounded-xl flex items-center justify-center text-lg">废</div>
+                    <div>
+                        <div class="font-bold text-gray-900 text-sm">废纸采购成本</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">waste-paper-cost-calculator.html</div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 5. 湿浆核算 -->
+            <a href="pulp-cost-calculator.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 bg-orange-100 text-orange-700 font-black rounded-xl flex items-center justify-center text-lg">浆</div>
+                    <div>
+                        <div class="font-bold text-gray-900 text-sm">湿浆 / 自制浆核算</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">pulp-cost-calculator.html</div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 6. 瓦楞纸成本对比（如果这个也要放进来） -->
+            <a href="瓦楞纸成本对比.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 bg-rose-100 text-rose-700 font-black rounded-xl flex items-center justify-center text-lg">比</div>
+                    <div>
+                        <div class="font-bold text-gray-900 text-sm">瓦楞纸成本对比</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">瓦楞纸成本对比.html</div>
+                    </div>
+                </div>
+            </a>
+
         </div>
+
+        <p class="text-center text-gray-400 text-xs mt-8">
+            iPhone 15 Pro Max 专属优化界面
+        </p>
     </div>
-
-    <div class="text-center text-[10px] text-gray-400 mt-3 px-4">
-        得率 = 100 − 灰分 − 水分 − 流失 + 目标灰分 + 目标水分
-    </div>
-</div>
-
-<script>
-const { createApp } = Vue;
-
-const DEFAULT_MATERIALS = [
-    { category: '白纸类', name: '混合白', ash: 31.0, moisture: 12.0, loss: 1.0, price: 2160, elec: 60 },
-    { category: '白纸类', name: '国杂', ash: 25.0, moisture: 12.0, loss: 4.0, price: 2150, elec: 60 },
-    { category: '白纸类', name: '混合国杂', ash: 25.0, moisture: 12.0, loss: 4.0, price: 2150, elec: 60 },
-    { category: '白纸类', name: '低白双胶杂纸', ash: 26.0, moisture: 12.0, loss: 1.0, price: 2150, elec: 60 },
-    { category: '白纸类', name: '工厂书边纸', ash: 27.5, moisture: 12.0, loss: 1.0, price: 2010, elec: 60 },
-    { category: '白纸类', name: '无碳废纸', ash: 21.0, moisture: 12.0, loss: 4.5, price: 2030, elec: 60 },
-    { category: '白纸类', name: '印花纸', ash: 9.3, moisture: 14.0, loss: 4.5, price: 2030, elec: 60 },
-    { category: '白纸类', name: '保密局浆', ash: 22.0, moisture: 10.0, loss: 1.0, price: 1740, elec: 60 },
-    { category: '黄板类', name: '坑卡', ash: 24.0, moisture: 12.0, loss: 14.0, price: 1880, elec: 60 },
-    { category: '黄板类', name: '箱板纸A', ash: 22.0, moisture: 12.0, loss: 10.0, price: 2000, elec: 60 },
-    { category: '黄板类', name: '箱板纸特级', ash: 19.0, moisture: 12.0, loss: 6.0, price: 2170, elec: 60 },
-    { category: '湿浆类', name: '本色竹浆', ash: 5.0, moisture: 10.0, loss: 2.0, price: 2570, elec: 90 },
-    { category: '湿浆类', name: '自制中温浆', ash: 3.5, moisture: 8.0, loss: 25.0, price: 1920, elec: 219 },
-    { category: '湿浆类', name: '中温湿浆', ash: 3.5, moisture: 10.0, loss: 2.0, price: 2550, elec: 60 },
-];
-
-createApp({
-    data() {
-        return {
-            targetAsh: 15,
-            targetMoisture: 8,
-            materials: JSON.parse(JSON.stringify(DEFAULT_MATERIALS))
-        }
-    },
-    mounted() {
-        const savedData = localStorage.getItem('paper_calc_materials');
-        const savedTargets = localStorage.getItem('paper_calc_targets');
-        if (savedData) { try { this.materials = JSON.parse(savedData); } catch(e) {} }
-        if (savedTargets) {
-            try {
-                const t = JSON.parse(savedTargets);
-                this.targetAsh = t.ash;
-                this.targetMoisture = t.moisture;
-            } catch(e) {}
-        }
-    },
-    watch: {
-        materials: {
-            handler(v) { localStorage.setItem('paper_calc_materials', JSON.stringify(v)); },
-            deep: true
-        },
-        targetAsh() { this.saveTargets(); },
-        targetMoisture() { this.saveTargets(); }
-    },
-    methods: {
-        saveTargets() {
-            localStorage.setItem('paper_calc_targets', JSON.stringify({
-                ash: this.targetAsh, moisture: this.targetMoisture
-            }));
-        },
-        resetToDefault() {
-            if (confirm('确定恢复原始默认值？')) {
-                this.targetAsh = 15;
-                this.targetMoisture = 8;
-                this.materials = JSON.parse(JSON.stringify(DEFAULT_MATERIALS));
-                localStorage.removeItem('paper_calc_materials');
-                localStorage.removeItem('paper_calc_targets');
-            }
-        },
-        calcYield(item) {
-            return 100 - (item.ash || 0) - (item.moisture || 0) - (item.loss || 0) + this.targetAsh + this.targetMoisture;
-        },
-        calcConsumption(item) {
-            const y = this.calcYield(item);
-            return y <= 0 ? 0 : 1000 / (y / 100);
-        },
-        calcYieldCost(item) {
-            const y = this.calcYield(item);
-            return y <= 0 ? 0 : (item.price || 0) / (y / 100);
-        },
-        calcTotal(item) {
-            return this.calcYieldCost(item) + (item.elec || 0);
-        },
-        formatNum(num, fixed) {
-            return Number(num || 0).toFixed(fixed);
-        }
-    }
-}).mount('#app');
-</script>
-</body>
-</html>
 </body>
 </html>
