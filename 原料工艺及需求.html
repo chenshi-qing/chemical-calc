@@ -62,6 +62,11 @@
     .top-summary .green { color: #059669; }
     .top-summary .blue { color: #2563eb; }
 
+    .tip-banner {
+      background: #e0f2fe; color: #0369a1; padding: 3px 6px;
+      border-radius: 4px; font-size: 0.6rem; text-align: center; margin-bottom: 4px;
+    }
+
     /* 手机端卡片列表（极致压缩） */
     .mobile-list { display: flex; flex-direction: column; gap: 4px; }
     .item-card {
@@ -71,9 +76,9 @@
     }
     .card-header {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 3px; padding-bottom: 2px; border-b: 1px dashed #f1f5f9;
+      margin-bottom: 3px; padding-bottom: 2px; border-bottom: 1px dashed #f1f5f9;
     }
-    .card-title-group { display: flex; items-center; gap: 4px; }
+    .card-title-group { display: flex; align-items: center; gap: 4px; }
     .card-title { font-weight: bold; font-size: 0.82rem; }
     .card-tag {
       font-size: 0.58rem; background: #eff6ff; color: #2563eb;
@@ -89,11 +94,17 @@
     .field-box {
       background: #f8fafc; padding: 2px; border-radius: 4px; text-align: center;
     }
-    .field-box label { font-size: 0.55rem; color: #64748b; display: block; line-height: 1; scale: 0.9; }
+    .field-box.highlight {
+      background: #f0fdf4; border: 1px solid #bbf7d0;
+    }
+    .field-box label { font-size: 0.55rem; color: #64748b; display: block; line-height: 1; }
     .field-box input {
       width: 100%; border: 1px solid #cbd5e1; border-radius: 3px;
       padding: 1px 0; font-size: 16px !important; /* iOS 防放大 */
       font-weight: 700; text-align: center; background: #fff; margin-top: 1px;
+    }
+    .field-box input.readonly-input {
+      background: #f1f5f9; color: #2563eb; border-color: #bfdbfe;
     }
     
     /* 卡片输出区 (4 列) */
@@ -121,6 +132,9 @@
       input.cell-input {
         width: 95%; padding: 2px; border: 1px solid #cbd5e1;
         border-radius: 3px; text-align: center; font-size: 12px; font-weight: bold;
+      }
+      input.cell-input.auto-pct {
+        background: #eff6ff; color: #1d4ed8;
       }
       tfoot td { background: #fef3c7; font-weight: bold; font-size: 0.78rem; }
     }
@@ -170,6 +184,11 @@
     </div>
   </details>
 
+  <!-- 提示横幅 -->
+  <div class="tip-banner">
+    💡 修改【包数】或【包重】将自动重新计算【配比%】
+  </div>
+
   <!-- 顶部数据总览 -->
   <div class="top-summary">
     <div class="box"><label>配比合计</label><span id="sumPlanPct" class="blue">0%</span></div>
@@ -188,21 +207,21 @@
     <table>
       <thead>
         <tr>
-          <th>分类</th><th>名称</th><th>配比%</th>
-          <th>价格(元)</th><th>得率%</th><th>得率成本</th>
-          <th>包数</th><th>包重</th><th>库存(吨)</th>
-          <th>日用量(吨)</th><th>车数</th><th>可用天数</th><th>缺口(吨)</th>
+          <th>分类</th><th>名称</th><th>包数</th><th>包重(吨)</th>
+          <th>配比% (自动)</th><th>价格(元)</th><th>得率%</th><th>得率成本</th>
+          <th>库存(吨)</th><th>日用量(吨)</th><th>车数</th><th>可用天数</th><th>缺口(吨)</th>
         </tr>
       </thead>
       <tbody id="pcTableBody"></tbody>
       <tfoot>
         <tr>
           <td colspan="2">合计 / 加权平均</td>
+          <td id="pcSumPacks">-</td>
+          <td id="pcSumWeight">-</td>
           <td id="pcSumPlanPct">0%</td>
           <td id="pcSumPrice">0</td>
           <td id="pcSumYield">0%</td>
           <td id="pcSumCost">0</td>
-          <td colspan="2">-</td>
           <td id="pcSumStock">0</td>
           <td id="pcSumDaily">0</td>
           <td>-</td><td>-</td>
@@ -236,15 +255,15 @@
 <script>
 // 默认标准数据
 const defaultRows = [
-  { category: "黄纸类", name: "箱板纸A",   planPct: 30, price: 2000, yieldPct: 79,   packs: 5, weight: 1, stock: 390 },
-  { category: "黄纸类", name: "特级黄板",   planPct: 20, price: 2170, yieldPct: 86,   packs: 4, weight: 1, stock: 808 },
-  { category: "白纸类", name: "印花纸",     planPct: 5,  price: 2030, yieldPct: 95.2, packs: 1, weight: 1, stock: 179 },
-  { category: "白纸类", name: "保密局纸浆", planPct: 5,  price: 1740, yieldPct: 90,   packs: 1, weight: 1, stock: 122 },
-  { category: "白纸类", name: "低白双胶",   planPct: 5,  price: 2150, yieldPct: 84,   packs: 1, weight: 1, stock: 389 },
-  { category: "纤维浆", name: "中温湿浆",   planPct: 10, price: 2550, yieldPct: 107.5,packs: 2, weight: 1, stock: 11  },
-  { category: "纤维浆", name: "自制中温浆", planPct: 5,  price: 1920, yieldPct: 86.5, packs: 1, weight: 1, stock: 78  },
-  { category: "纤维浆", name: "本色竹浆",   planPct: 15, price: 2570, yieldPct: 106,  packs: 3, weight: 1, stock: 52  },
-  { category: "纤维浆", name: "污泥",       planPct: 5,  price: 0,    yieldPct: 50,   packs: 1, weight: 3, stock: 0   }
+  { category: "黄纸类", name: "箱板纸A",   packs: 5, weight: 1, planPct: 23.8, price: 2000, yieldPct: 79,   stock: 390 },
+  { category: "黄纸类", name: "特级黄板",   packs: 4, weight: 1, planPct: 19.0, price: 2170, yieldPct: 86,   stock: 808 },
+  { category: "白纸类", name: "印花纸",     packs: 1, weight: 1, planPct: 4.8,  price: 2030, yieldPct: 95.2, stock: 179 },
+  { category: "白纸类", name: "保密局纸浆", packs: 1, weight: 1, planPct: 4.8,  price: 1740, yieldPct: 90,   stock: 122 },
+  { category: "白纸类", name: "低白双胶",   packs: 1, weight: 1, planPct: 4.8,  price: 2150, yieldPct: 84,   stock: 389 },
+  { category: "纤维浆", name: "中温湿浆",   packs: 2, weight: 1, planPct: 9.5,  price: 2550, yieldPct: 107.5,stock: 11  },
+  { category: "纤维浆", name: "自制中温浆", packs: 1, weight: 1, planPct: 4.8,  price: 1920, yieldPct: 86.5, stock: 78  },
+  { category: "纤维浆", name: "本色竹浆",   packs: 3, weight: 1, planPct: 14.3, price: 2570, yieldPct: 106,  stock: 52  },
+  { category: "纤维浆", name: "污泥",       packs: 1, weight: 3, planPct: 14.3, price: 0,    yieldPct: 50,   stock: 0   }
 ];
 
 let rowData = [];
@@ -253,11 +272,12 @@ let rowData = [];
 function init() {
   loadData();
   loadTop();
+  recalcRatiosFromPacks(); // 先根据包数包重校验配比
   calculateAll();
 }
 
 function loadData() {
-  const saved = localStorage.getItem('gy_data_v2');
+  const saved = localStorage.getItem('gy_data_v3');
   if (saved) {
     try { rowData = JSON.parse(saved); return; } catch(e){}
   }
@@ -265,8 +285,8 @@ function loadData() {
 }
 
 function saveData() {
-  localStorage.setItem('gy_data_v2', JSON.stringify(rowData));
-  localStorage.setItem('gy_top_v2', JSON.stringify({
+  localStorage.setItem('gy_data_v3', JSON.stringify(rowData));
+  localStorage.setItem('gy_top_v3', JSON.stringify({
     planTons: document.getElementById('planTons').value,
     dailyCapacity: document.getElementById('dailyCapacity').value,
     truckCapacity: document.getElementById('truckCapacity').value
@@ -274,7 +294,7 @@ function saveData() {
 }
 
 function loadTop() {
-  const t = localStorage.getItem('gy_top_v2');
+  const t = localStorage.getItem('gy_top_v3');
   if (t) {
     try {
       const obj = JSON.parse(t);
@@ -287,13 +307,32 @@ function loadTop() {
 
 function resetAll() {
   if(confirm('确定要恢复默认初始数据吗？')) {
-    localStorage.removeItem('gy_data_v2');
-    localStorage.removeItem('gy_top_v2');
+    localStorage.removeItem('gy_data_v3');
+    localStorage.removeItem('gy_top_v3');
     document.getElementById('planTons').value = 9000;
     document.getElementById('dailyCapacity').value = 400;
     document.getElementById('truckCapacity').value = 30;
     rowData = JSON.parse(JSON.stringify(defaultRows));
+    recalcRatiosFromPacks();
     calculateAll();
+  }
+}
+
+// 核心：根据包数和包重自动计算【配比%】
+function recalcRatiosFromPacks() {
+  let totalBatchWeight = 0;
+  rowData.forEach(r => {
+    const p = parseFloat(r.packs) || 0;
+    const w = parseFloat(r.weight) || 0;
+    totalBatchWeight += (p * w);
+  });
+
+  if (totalBatchWeight > 0) {
+    rowData.forEach(r => {
+      const p = parseFloat(r.packs) || 0;
+      const w = parseFloat(r.weight) || 0;
+      r.planPct = parseFloat((((p * w) / totalBatchWeight) * 100).toFixed(1));
+    });
   }
 }
 
@@ -311,7 +350,7 @@ function calculateAll() {
   let sumStock = 0;
   let sumDemand = 0;
 
-  // 1. 计算加权综合得率
+  // 计算加权数据
   rowData.forEach(r => {
     const pct = parseFloat(r.planPct) || 0;
     const y = parseFloat(r.yieldPct) || 0;
@@ -325,9 +364,7 @@ function calculateAll() {
     }
   });
 
-  // 日原料总用量 = 日产能 / (加权得率/100)
   const totalDailyRawMaterial = sumWeightedYield > 0 ? (dailyCapacity / (sumWeightedYield / 100)) : 0;
-  // 计划原料总需求量 = 计划排产 / (加权得率/100)
   const totalPlanRawMaterial = sumWeightedYield > 0 ? (planTons / (sumWeightedYield / 100)) : 0;
 
   const mobileContainer = document.getElementById('mobileList');
@@ -341,7 +378,6 @@ function calculateAll() {
     const yieldPct = parseFloat(item.yieldPct) || 0;
     const stock = parseFloat(item.stock) || 0;
 
-    // 单项计算
     const yieldCost = yieldPct > 0 ? (price / (yieldPct / 100)) : 0;
     const itemDailyUse = totalDailyRawMaterial * (pct / 100);
     const itemTrucks = truckCapacity > 0 ? (itemDailyUse / truckCapacity) : 0;
@@ -365,12 +401,12 @@ function calculateAll() {
         <div class="card-cost">成本: ¥${yieldCost.toFixed(0)}/吨</div>
       </div>
       <div class="card-grid-inputs">
-        <div class="field-box"><label>配比%</label><input type="number" inputmode="decimal" value="${item.planPct}" onchange="updateItem(${idx}, 'planPct', this.value)"></div>
+        <div class="field-box highlight"><label>包数</label><input type="number" inputmode="decimal" value="${item.packs}" onchange="updateItem(${idx}, 'packs', this.value)"></div>
+        <div class="field-box highlight"><label>包重(吨)</label><input type="number" inputmode="decimal" value="${item.weight}" onchange="updateItem(${idx}, 'weight', this.value)"></div>
+        <div class="field-box"><label>配比%</label><input type="number" inputmode="decimal" readonly class="readonly-input" value="${item.planPct}"></div>
         <div class="field-box"><label>价格</label><input type="number" inputmode="decimal" value="${item.price}" onchange="updateItem(${idx}, 'price', this.value)"></div>
         <div class="field-box"><label>得率%</label><input type="number" inputmode="decimal" value="${item.yieldPct}" onchange="updateItem(${idx}, 'yieldPct', this.value)"></div>
-        <div class="field-box"><label>包数</label><input type="number" inputmode="decimal" value="${item.packs}" onchange="updateItem(${idx}, 'packs', this.value)"></div>
-        <div class="field-box"><label>包重</label><input type="number" inputmode="decimal" value="${item.weight}" onchange="updateItem(${idx}, 'weight', this.value)"></div>
-        <div class="field-box"><label>库存</label><input type="number" inputmode="decimal" value="${item.stock}" onchange="updateItem(${idx}, 'stock', this.value)"></div>
+        <div class="field-box"><label>库存(吨)</label><input type="number" inputmode="decimal" value="${item.stock}" onchange="updateItem(${idx}, 'stock', this.value)"></div>
       </div>
       <div class="card-outputs">
         <div class="out-box"><label>日用量</label><div class="out-val">${itemDailyUse.toFixed(1)} 吨</div></div>
@@ -386,12 +422,12 @@ function calculateAll() {
     tr.innerHTML = `
       <td>${item.category}</td>
       <td><strong>${item.name}</strong></td>
-      <td><input class="cell-input" type="number" value="${item.planPct}" onchange="updateItem(${idx}, 'planPct', this.value)"></td>
+      <td><input class="cell-input" type="number" value="${item.packs}" onchange="updateItem(${idx}, 'packs', this.value)"></td>
+      <td><input class="cell-input" type="number" value="${item.weight}" onchange="updateItem(${idx}, 'weight', this.value)"></td>
+      <td><input class="cell-input auto-pct" type="number" readonly value="${item.planPct}"></td>
       <td><input class="cell-input" type="number" value="${item.price}" onchange="updateItem(${idx}, 'price', this.value)"></td>
       <td><input class="cell-input" type="number" value="${item.yieldPct}" onchange="updateItem(${idx}, 'yieldPct', this.value)"></td>
       <td>¥${yieldCost.toFixed(0)}</td>
-      <td><input class="cell-input" type="number" value="${item.packs}" onchange="updateItem(${idx}, 'packs', this.value)"></td>
-      <td><input class="cell-input" type="number" value="${item.weight}" onchange="updateItem(${idx}, 'weight', this.value)"></td>
       <td><input class="cell-input" type="number" value="${item.stock}" onchange="updateItem(${idx}, 'stock', this.value)"></td>
       <td>${itemDailyUse.toFixed(1)}</td>
       <td>${itemTrucks.toFixed(1)}</td>
@@ -401,7 +437,7 @@ function calculateAll() {
     pcContainer.appendChild(tr);
   });
 
-  // 更新所有汇总面板
+  // 更新汇总面板
   document.getElementById('sumPlanPct').innerText = sumPlanPct.toFixed(1) + '%';
   document.getElementById('sumYield').innerText = sumWeightedYield.toFixed(1) + '%';
   document.getElementById('sumPrice').innerText = '¥' + sumWeightedPrice.toFixed(0);
@@ -427,6 +463,10 @@ function calculateAll() {
 
 function updateItem(idx, key, val) {
   rowData[idx][key] = parseFloat(val) || 0;
+  // 如果修改的是包数或包重，立刻自动重算配比%
+  if (key === 'packs' || key === 'weight') {
+    recalcRatiosFromPacks();
+  }
   calculateAll();
 }
 
