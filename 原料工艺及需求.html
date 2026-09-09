@@ -2,192 +2,230 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>原料工艺及需求核算工具</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
       background-color: #f1f5f9;
       color: #0f172a;
-      padding: 10px;
-      padding-bottom: 70px; /* 给底部固定栏留空间 */
-      font-size: 14px;
+      padding: 6px 6px 90px;
+      font-size: 13px;
     }
     .container { max-width: 1000px; margin: 0 auto; }
-    h1 { font-size: 1.1rem; text-align: center; margin-bottom: 10px; color: #1e293b; }
-    
+
+    /* 顶部栏 */
+    .top-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #0f172a; color: #fff;
+      padding: 6px 10px; border-radius: 8px; margin-bottom: 8px;
+    }
+    .top-bar h1 { font-size: 0.95rem; font-weight: 700; }
+    .top-bar a {
+      font-size: 0.7rem; background: #334155; color: #cbd5e1;
+      padding: 3px 8px; border-radius: 6px; text-decoration: none;
+      border: 1px solid #475569;
+    }
+    .top-bar button {
+      font-size: 0.7rem; background: #334155; color: #cbd5e1;
+      padding: 3px 8px; border-radius: 6px; border: 1px solid #475569;
+    }
+
     /* 折叠设置面板 */
     details.config-panel {
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      background: #fff; border: 1px solid #cbd5e1; border-radius: 8px;
+      padding: 6px 10px; margin-bottom: 8px;
     }
     details.config-panel summary {
-      font-weight: 600;
-      color: #475569;
-      font-size: 0.85rem;
-      cursor: pointer;
+      font-weight: 600; color: #475569; font-size: 0.8rem; cursor: pointer;
     }
     .top-inputs {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed #e2e8f0;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 6px; margin-top: 6px;
     }
-    .input-group label { font-size: 0.75rem; color: #64748b; display: block; margin-bottom: 3px; }
+    .input-group label { font-size: 0.68rem; color: #64748b; display: block; margin-bottom: 2px; }
     .input-group input {
-      width: 100%;
-      padding: 6px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-size: 0.9rem;
+      width: 100%; padding: 4px 6px; border: 1px solid #cbd5e1;
+      border-radius: 5px; font-size: 16px; /* iOS 防缩放 */
     }
 
-    /* 手机端卡片列表结构 */
-    .mobile-list { display: flex; flex-direction: column; gap: 10px; }
+    /* 顶部快速汇总 */
+    .top-summary {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 4px; margin-bottom: 8px;
+    }
+    .top-summary .box {
+      background: #fff; border-radius: 6px; padding: 5px 4px;
+      text-align: center; border: 1px solid #e2e8f0;
+    }
+    .top-summary label { font-size: 0.65rem; color: #64748b; display: block; }
+    .top-summary span { font-size: 0.9rem; font-weight: bold; color: #0f172a; }
+    .top-summary .red { color: #dc2626; }
+    .top-summary .green { color: #059669; }
+
+    /* 卡片列表 */
+    .mobile-list { display: flex; flex-direction: column; gap: 6px; }
     .item-card {
-      background: #ffffff;
-      border-radius: 8px;
-      padding: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-      border-left: 4px solid #2563eb;
+      background: #fff; border-radius: 8px;
+      padding: 6px 8px 7px; border-left: 3px solid #2563eb;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
     .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #f1f5f9;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 5px;
     }
-    .card-title { font-weight: bold; font-size: 1rem; color: #0f172a; }
-    .card-tag { font-size: 0.75rem; background: #eff6ff; color: #2563eb; padding: 2px 6px; border-radius: 4px; }
-    
+    .card-title { font-weight: bold; font-size: 0.9rem; }
+    .card-tag {
+      font-size: 0.65rem; background: #eff6ff; color: #2563eb;
+      padding: 1px 5px; border-radius: 4px;
+    }
+    .card-cost {
+      font-size: 0.85rem; font-weight: bold; color: #dc2626;
+    }
+
+    /* 卡片输入区 - 4列紧凑 */
     .card-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 8px;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 3px; margin-bottom: 3px;
     }
     .field-box {
-      background: #f8fafc;
-      padding: 6px 8px;
-      border-radius: 6px;
-    }
-    .field-box label { font-size: 0.7rem; color: #64748b; display: block; }
-    .field-box input {
-      width: 100%;
-      border: 1px solid #cbd5e1;
-      border-radius: 4px;
-      padding: 4px;
-      font-size: 0.9rem;
-      font-weight: 600;
+      background: #f8fafc; padding: 3px 4px; border-radius: 5px;
       text-align: center;
-      background: #fff;
     }
-    .field-val { font-weight: bold; font-size: 0.95rem; margin-top: 2px; }
-    .negative { color: #dc2626; }
+    .field-box label { font-size: 0.62rem; color: #64748b; display: block; line-height: 1.1; }
+    .field-box input {
+      width: 100%; border: 1px solid #cbd5e1; border-radius: 3px;
+      padding: 2px; font-size: 16px; /* iOS 防缩放 */
+      font-weight: 600; text-align: center; background: #fff;
+      margin-top: 1px;
+    }
+    .field-val {
+      font-weight: bold; font-size: 0.85rem; margin-top: 2px; color: #0f172a;
+    }
+    .field-val.negative { color: #dc2626; }
+    .field-val.positive { color: #059669; }
 
-    /* 折叠更多参数 */
-    .card-more {
-      font-size: 0.75rem;
-      color: #64748b;
-      margin-top: 4px;
+    /* 卡片底部只读输出行 */
+    .card-outputs {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 3px; margin-top: 3px;
+      background: #f1f5f9; padding: 4px; border-radius: 5px;
     }
-    .more-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-top: 6px;
-      padding-top: 6px;
-      background: #fafafa;
-      padding: 6px;
-      border-radius: 6px;
-    }
+    .card-outputs .field-box { background: transparent; padding: 0; }
 
-    /* 电脑大屏表格显示 */
+    /* PC 端表格 */
     .pc-table-wrapper { display: none; }
-
-    @media (min-width: 768px) {
+    @media (min-width: 900px) {
       .mobile-list { display: none; }
-      .pc-table-wrapper { display: block; overflow-x: auto; background: #fff; border-radius: 8px; padding: 12px; }
-      table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-      th, td { border: 1px solid #cbd5e1; padding: 8px 6px; text-align: center; }
-      th { background-color: #f1f5f9; }
-      input.cell-input { width: 80%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
+      .pc-table-wrapper {
+        display: block; overflow-x: auto; background: #fff;
+        border-radius: 8px; padding: 10px;
+      }
+      table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+      th, td { border: 1px solid #cbd5e1; padding: 5px 4px; text-align: center; }
+      th { background-color: #f1f5f9; font-size: 0.75rem; }
+      input.cell-input {
+        width: 90%; padding: 3px; border: 1px solid #cbd5e1;
+        border-radius: 4px; text-align: center; font-size: 13px;
+      }
+      td.negative { color: #dc2626; font-weight: bold; }
+      tfoot td { background: #fef3c7; font-weight: bold; font-size: 0.85rem; }
     }
 
-    /* 手机底部固定汇总栏 */
+    /* 底部汇总栏（更紧凑，4 列） */
     .bottom-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #0f172a;
-      color: #fff;
-      padding: 10px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
-      z-index: 100;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #0f172a; color: #fff;
+      padding: 6px 8px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.2); z-index: 100;
     }
-    .bar-stat label { font-size: 0.7rem; color: #94a3b8; display: block; }
-    .bar-stat span { font-size: 1.05rem; font-weight: bold; }
+    .bar-stat { text-align: center; }
+    .bar-stat label {
+      font-size: 0.62rem; color: #94a3b8; display: block; line-height: 1.1;
+    }
+    .bar-stat span { font-size: 0.9rem; font-weight: bold; }
     .bar-stat .red { color: #f87171; }
+    .bar-stat .green { color: #34d399; }
+    .bar-stat .yellow { color: #fbbf24; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>原料工艺及需求核算工具</h1>
+  <div class="top-bar">
+    <a href="home.html">← 工具箱</a>
+    <h1>原料工艺及需求</h1>
+    <button onclick="resetAll()">重置</button>
+  </div>
 
   <!-- 折叠基础设置 -->
   <details class="config-panel">
-    <summary>⚙️ 基础参数设置 (点击展开)</summary>
+    <summary>⚙️ 基础参数设置（排产/产能/装车量）</summary>
     <div class="top-inputs">
       <div class="input-group">
         <label>排产计划 (吨)</label>
-        <input type="number" id="planTons" value="9000" oninput="calculateAll()">
+        <input type="number" inputmode="decimal" id="planTons" value="9000" oninput="calculateAll()">
       </div>
       <div class="input-group">
         <label>产品产能 (吨/日)</label>
-        <input type="number" id="dailyCapacity" value="400" oninput="calculateAll()">
+        <input type="number" inputmode="decimal" id="dailyCapacity" value="400" oninput="calculateAll()">
       </div>
       <div class="input-group">
         <label>装载量 (吨/车)</label>
-        <input type="number" id="truckCapacity" value="30" oninput="calculateAll()">
+        <input type="number" inputmode="decimal" id="truckCapacity" value="30" oninput="calculateAll()">
       </div>
     </div>
   </details>
 
+  <!-- 顶部快速合计 -->
+  <div class="top-summary">
+    <div class="box">
+      <label>日总用量</label>
+      <span id="sumDaily">0</span>
+    </div>
+    <div class="box">
+      <label>加权得率%</label>
+      <span id="sumYield" class="green">0</span>
+    </div>
+    <div class="box">
+      <label>加权成本(元/吨)</label>
+      <span id="sumCost">0</span>
+    </div>
+    <div class="box">
+      <label>缺口(吨)</label>
+      <span id="sumDemand" class="red">0</span>
+    </div>
+  </div>
+
   <!-- 手机端：卡片列表视图 -->
   <div class="mobile-list" id="mobileList"></div>
 
-  <!-- PC端：表格视图 -->
+  <!-- PC 端：表格视图 -->
   <div class="pc-table-wrapper">
     <table>
       <thead>
         <tr>
-          <th>废纸种类</th>
-          <th>名称</th>
-          <th>计划调整 (%)</th>
-          <th>包数</th>
-          <th>包重</th>
-          <th>每天用量 (吨)</th>
-          <th>需求车数</th>
-          <th>库存 (吨)</th>
-          <th>可用天数</th>
-          <th>排产废纸需求 (吨)</th>
+          <th>种类</th><th>名称</th><th>计划%</th>
+          <th>价格(元/吨)</th><th>得率%</th>
+          <th>包数</th><th>包重</th>
+          <th>日用量(吨)</th><th>车数</th>
+          <th>库存(吨)</th><th>可用天数</th>
+          <th>缺口(吨)</th>
         </tr>
       </thead>
       <tbody id="pcTableBody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="7">合计 / 加权平均</td>
+          <td id="pcSumDaily">0</td>
+          <td>-</td>
+          <td id="pcSumStock">0</td>
+          <td id="pcSumYield">-</td>
+          <td id="pcSumDemand">0</td>
+        </tr>
+      </tfoot>
     </table>
   </div>
 </div>
@@ -196,144 +234,53 @@
 <div class="bottom-bar">
   <div class="bar-stat">
     <label>日总用量</label>
-    <span id="barDaily">400.0 吨</span>
+    <span id="barDaily">0 吨</span>
   </div>
   <div class="bar-stat">
-    <label>总需求缺口</label>
-    <span id="barDemand" class="red">-6971.0 吨</span>
+    <label>加权得率</label>
+    <span id="barYield" class="green">0 %</span>
+  </div>
+  <div class="bar-stat">
+    <label>加权成本</label>
+    <span id="barCost" class="yellow">0</span>
+  </div>
+  <div class="bar-stat">
+    <label>需求缺口</label>
+    <span id="barDemand" class="red">0 吨</span>
   </div>
 </div>
 
 <script>
 const defaultRows = [
-  { category: "黄纸类", name: "箱板纸A", planPct: 30, packs: 5, weight: 1, stock: 390 },
-  { category: "黄纸类", name: "特级黄板", planPct: 20, packs: 4, weight: 1, stock: 808 },
-  { category: "白纸类", name: "印花纸", planPct: 5, packs: 1, weight: 1, stock: 179 },
-  { category: "白纸类", name: "保密局纸浆", planPct: 5, packs: 1, weight: 1, stock: 122 },
-  { category: "白纸类", name: "低白双胶", planPct: 5, packs: 1, weight: 1, stock: 389 },
-  { category: "纤维浆", name: "中温湿浆", planPct: 10, packs: 2, weight: 1, stock: 11 },
-  { category: "纤维浆", name: "中温废纸", planPct: 5, packs: 1, weight: 1, stock: 78 },
-  { category: "纤维浆", name: "本色竹浆", planPct: 15, packs: 3, weight: 1, stock: 52 },
-  { category: "纤维浆", name: "污泥", planPct: 5, packs: 1, weight: 3, stock: 0, isCustomTruck: true }
+  { category: "黄纸类", name: "箱板纸A",   planPct: 30, packs: 5, weight: 1, stock: 390, price: 2000, yieldPct: 79 },
+  { category: "黄纸类", name: "特级黄板",   planPct: 20, packs: 4, weight: 1, stock: 808, price: 2170, yieldPct: 86 },
+  { category: "白纸类", name: "印花纸",     planPct: 5,  packs: 1, weight: 1, stock: 179, price: 2030, yieldPct: 95.2 },
+  { category: "白纸类", name: "保密局纸浆", planPct: 5,  packs: 1, weight: 1, stock: 122, price: 1740, yieldPct: 90 },
+  { category: "白纸类", name: "低白双胶",   planPct: 5,  packs: 1, weight: 1, stock: 389, price: 2150, yieldPct: 84 },
+  { category: "纤维浆", name: "中温湿浆",   planPct: 10, packs: 2, weight: 1, stock: 11,  price: 2550, yieldPct: 107.5 },
+  { category: "纤维浆", name: "中温废纸",   planPct: 5,  packs: 1, weight: 1, stock: 78,  price: 1920, yieldPct: 86.5 },
+  { category: "纤维浆", name: "本色竹浆",   planPct: 15, packs: 3, weight: 1, stock: 52,  price: 2570, yieldPct: 106 },
+  { category: "纤维浆", name: "污泥",       planPct: 5,  packs: 1, weight: 3, stock: 0,   price: 0,    yieldPct: 0, isCustomTruck: true }
 ];
 
-let rowData = JSON.parse(JSON.stringify(defaultRows));
+let rowData = [];
 
-function render() {
-  // 渲染手机卡片
-  const mobileContainer = document.getElementById("mobileList");
-  mobileContainer.innerHTML = "";
-
-  rowData.forEach((row, i) => {
-    const card = document.createElement("div");
-    card.className = "item-card";
-    card.innerHTML = `
-      <div class="card-header">
-        <span class="card-title">${row.name}</span>
-        <span class="card-tag">${row.category}</span>
-      </div>
-      <div class="card-grid">
-        <div class="field-box">
-          <label>计划调整 (%)</label>
-          <input type="number" value="${row.planPct}" onchange="updateVal(${i}, 'planPct', this.value)">
-        </div>
-        <div class="field-box">
-          <label>库存量 (吨)</label>
-          <input type="number" value="${row.stock}" onchange="updateVal(${i}, 'stock', this.value)">
-        </div>
-        <div class="field-box">
-          <label>日用量 (吨)</label>
-          <div class="field-val" id="m_daily_${i}">0</div>
-        </div>
-        <div class="field-box">
-          <label>排产需求 (吨)</label>
-          <div class="field-val negative" id="m_demand_${i}">0</div>
-        </div>
-      </div>
-      <details class="card-more">
-        <summary>查看更多参数 (包数/车数/天数)</summary>
-        <div class="more-grid">
-          <div>包数: <input type="number" style="width:40px" value="${row.packs}" onchange="updateVal(${i}, 'packs', this.value)"></div>
-          <div>包重: <input type="number" style="width:40px" value="${row.weight}" onchange="updateVal(${i}, 'weight', this.value)"></div>
-          <div>车数: <span id="m_truck_${i}">-</span></div>
-          <div>天数: <span id="m_days_${i}">-</span></div>
-        </div>
-      </details>
-    `;
-    mobileContainer.appendChild(card);
-  });
-
-  // 渲染 PC 表格
-  const pcBody = document.getElementById("pcTableBody");
-  pcBody.innerHTML = "";
-  rowData.forEach((row, i) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${row.category}</td>
-      <td><strong>${row.name}</strong></td>
-      <td><input class="cell-input" type="number" value="${row.planPct}" onchange="updateVal(${i}, 'planPct', this.value)"></td>
-      <td><input class="cell-input" type="number" value="${row.packs}" onchange="updateVal(${i}, 'packs', this.value)"></td>
-      <td><input class="cell-input" type="number" value="${row.weight}" onchange="updateVal(${i}, 'weight', this.value)"></td>
-      <td id="pc_daily_${i}">0</td>
-      <td id="pc_truck_${i}">0</td>
-      <td><input class="cell-input" type="number" value="${row.stock}" onchange="updateVal(${i}, 'stock', this.value)"></td>
-      <td id="pc_days_${i}">0</td>
-      <td id="pc_demand_${i}" class="negative">0</td>
-    `;
-    pcBody.appendChild(tr);
-  });
-
-  calculateAll();
+/* ============ 本地存储 ============ */
+function loadData() {
+  const saved = localStorage.getItem('gy_data_v1');
+  if (saved) {
+    try { rowData = JSON.parse(saved); return; } catch(e){}
+  }
+  rowData = JSON.parse(JSON.stringify(defaultRows));
 }
-
-function updateVal(index, field, value) {
-  rowData[index][field] = parseFloat(value) || 0;
-  calculateAll();
+function saveData() {
+  localStorage.setItem('gy_data_v1', JSON.stringify(rowData));
+  localStorage.setItem('gy_top_v1', JSON.stringify({
+    planTons: document.getElementById('planTons').value,
+    dailyCapacity: document.getElementById('dailyCapacity').value,
+    truckCapacity: document.getElementById('truckCapacity').value
+  }));
 }
-
-function calculateAll() {
-  const planTons = parseFloat(document.getElementById("planTons").value) || 0;
-  const dailyCapacity = parseFloat(document.getElementById("dailyCapacity").value) || 0;
-  const truckCapacity = parseFloat(document.getElementById("truckCapacity").value) || 30;
-
-  let totalQty = 0;
-  rowData.forEach(r => { totalQty += (r.packs * r.weight); });
-
-  let sumDaily = 0;
-  let sumDemand = 0;
-
-  rowData.forEach((r, i) => {
-    const qty = r.packs * r.weight;
-    const actPct = totalQty > 0 ? (qty / totalQty) : 0;
-    const dailyTons = dailyCapacity * actPct;
-    const trucks = r.isCustomTruck ? "自备" : (truckCapacity > 0 ? (dailyTons / truckCapacity).toFixed(1) : 0);
-    const days = dailyTons > 0 ? (r.stock / dailyTons).toFixed(1) : "-";
-    const demand = r.stock - (planTons * actPct);
-
-    sumDaily += dailyTons;
-    sumDemand += demand;
-
-    // 更新手机端
-    document.getElementById(`m_daily_${i}`).innerText = dailyTons.toFixed(1);
-    document.getElementById(`m_demand_${i}`).innerText = demand.toFixed(1);
-    document.getElementById(`m_truck_${i}`).innerText = trucks;
-    document.getElementById(`m_days_${i}`).innerText = days;
-
-    // 更新 PC 端
-    document.getElementById(`pc_daily_${i}`).innerText = dailyTons.toFixed(1);
-    document.getElementById(`pc_demand_${i}`).innerText = demand.toFixed(1);
-    document.getElementById(`pc_truck_${i}`).innerText = trucks;
-    document.getElementById(`pc_days_${i}`).innerText = days;
-  });
-
-  // 更新底部固定栏
-  document.getElementById("barDaily").innerText = sumDaily.toFixed(1) + " 吨";
-  const demandEl = document.getElementById("barDemand");
-  demandEl.innerText = sumDemand.toFixed(1) + " 吨";
-  if (sumDemand < 0) demandEl.className = "red"; else demandEl.className = "";
-}
-
-window.onload = render;
-</script>
-</body>
-</html>
+function loadTop() {
+  const t = localStorage.getItem('gy_top_v1');
+  if (!t) 
