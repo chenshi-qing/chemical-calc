@@ -7,8 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        body { background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
-        input[type="number"] { -moz-appearance: textfield; }
+        body { background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; margin: 0; }
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input { font-size: 16px !important; }
@@ -16,9 +15,7 @@
             padding: 2px 3px !important;
             border-radius: 4px !important;
             line-height: 1.1 !important;
-            font-size: 16px !important;
         }
-        /* 弹窗遮罩 */
         .modal-mask {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5);
             display: flex; justify-content: center; align-items: center; z-index: 100;
@@ -26,9 +23,9 @@
     </style>
 </head>
 <body>
-<div id="app" class="pb-4 max-w-md mx-auto">
+<div id="app" class="pb-6 max-w-md mx-auto">
 
-    <!-- 顶部固定控制栏 -->
+    <!-- 顶部栏 -->
     <div class="sticky top-0 z-10 bg-blue-600 text-white shadow rounded-b-lg mb-1.5">
         <div class="px-2 pt-1.5 pb-1.5">
             <div class="flex justify-between items-center mb-1">
@@ -39,7 +36,6 @@
                     <button @click="resetToDefault" class="text-[11px] bg-blue-500/90 px-2 py-0.5 rounded border border-blue-400/30">重置</button>
                 </div>
             </div>
-
             <div class="flex justify-between items-center text-[11px] bg-blue-700/50 px-2 py-1 rounded">
                 <span class="opacity-90">目标参数</span>
                 <div class="flex items-center gap-2">
@@ -58,16 +54,14 @@
         </div>
     </div>
 
-    <!-- 卡片列表 (极致紧凑) -->
+    <!-- 卡片列表 -->
     <div class="px-1.5 space-y-1.5">
         <div v-for="(item, index) in materials" :key="index"
              class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden relative">
 
-            <!-- 删除按钮 -->
             <button @click="deleteItem(index)"
-                    class="absolute top-1 right-1 w-4 h-4 bg-red-100 text-red-600 rounded-full text-[10px] font-bold leading-none z-10">×</button>
+                    class="absolute top-1 right-1 w-4 h-4 bg-red-100 text-red-600 rounded-full text-[10px] font-bold leading-none z-10 flex items-center justify-center">×</button>
 
-            <!-- 卡片头部：名称与综合成本 (超扁) -->
             <div class="flex justify-between items-center px-2 py-1 bg-gray-50 border-b border-gray-100 pr-6">
                 <div class="min-w-0 flex items-center gap-1.5">
                     <span class="text-[9px] font-bold text-blue-600 bg-blue-100 px-1 py-0.5 rounded leading-none">{{ item.category }}</span>
@@ -79,7 +73,6 @@
                 </div>
             </div>
 
-            <!-- 参数区 - 全部压缩到一排 -->
             <div class="px-1.5 py-1.5">
                 <div class="grid grid-cols-6 gap-1 mb-1">
                     <div>
@@ -112,8 +105,6 @@
                         <div class="text-[11px] font-bold text-blue-950">{{ formatNum(calcYield(item), 1) }}</div>
                     </div>
                 </div>
-
-                <!-- 底部得率与消耗信息 -->
                 <div class="grid grid-cols-2 gap-1 text-[10px] text-gray-500 pt-0.5 border-t border-dashed border-gray-100">
                     <div class="flex justify-between px-1">
                         <span>吨纸消耗:</span>
@@ -128,10 +119,10 @@
         </div>
     </div>
 
-    <!-- 添加原料弹窗 -->
+    <!-- 添加弹窗 -->
     <div v-if="showAddModal" class="modal-mask" @click.self="showAddModal = false">
         <div class="bg-white rounded-xl w-11/12 max-w-sm p-4 shadow-2xl">
-            <h3 class="text-lg font-bold mb-3">➕ 添加新原料</h3>
+            <h3 class="text-base font-bold mb-3">➕ 添加新原料</h3>
             <div class="grid grid-cols-2 gap-2 mb-4">
                 <div>
                     <label class="text-xs text-gray-500">分类</label>
@@ -208,20 +199,20 @@ createApp({
             targetMoisture: 8,
             materials: JSON.parse(JSON.stringify(DEFAULT_MATERIALS)),
             showAddModal: false,
-            newItem: this.getEmptyItem()
+            newItem: { category: '白纸类', name: '', ash: 20, moisture: 12, loss: 3, price: 2000, elec: 60 }
         }
     },
     mounted() {
-        const savedData = localStorage.getItem('paper_calc_materials_v2');
-        const savedTargets = localStorage.getItem('paper_calc_targets_v2');
-        if (savedData) { try { this.materials = JSON.parse(savedData); } catch(e) {} }
-        if (savedTargets) {
-            try {
+        try {
+            const savedData = localStorage.getItem('paper_calc_materials_v2');
+            const savedTargets = localStorage.getItem('paper_calc_targets_v2');
+            if (savedData) this.materials = JSON.parse(savedData);
+            if (savedTargets) {
                 const t = JSON.parse(savedTargets);
                 this.targetAsh = t.ash;
                 this.targetMoisture = t.moisture;
-            } catch(e) {}
-        }
+            }
+        } catch (e) {}
     },
     watch: {
         materials: {
@@ -232,20 +223,17 @@ createApp({
         targetMoisture() { this.saveTargets(); }
     },
     methods: {
-        getEmptyItem() {
-            return { category: '白纸类', name: '', ash: 20, moisture: 12, loss: 3, price: 2000, elec: 60 };
-        },
         saveTargets() {
             localStorage.setItem('paper_calc_targets_v2', JSON.stringify({
                 ash: this.targetAsh, moisture: this.targetMoisture
             }));
         },
         openAddModal() {
-            this.newItem = this.getEmptyItem();
+            this.newItem = { category: '白纸类', name: '', ash: 20, moisture: 12, loss: 3, price: 2000, elec: 60 };
             this.showAddModal = true;
         },
         confirmAdd() {
-            if (!this.newItem.name.trim()) {
+            if (!this.newItem.name || !this.newItem.name.trim()) {
                 alert('请输入原料名称！');
                 return;
             }
@@ -254,158 +242,17 @@ createApp({
             setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
         },
         deleteItem(index) {
-            if (confirm(`确定删除【${this.materials[index].name}】吗？`)) {
+            if (confirm('确定删除【' + this.materials[index].name + '】吗？')) {
                 this.materials.splice(index, 1);
             }
         },
         resetToDefault() {
-            if (confirm('确定恢复原始默认值？所有自定义原料将被清空！')) {
+            if (confirm('确定恢复原始默认值？自定义原料会被清空！')) {
                 this.targetAsh = 15;
                 this.targetMoisture = 8;
                 this.materials = JSON.parse(JSON.stringify(DEFAULT_MATERIALS));
                 localStorage.removeItem('paper_calc_materials_v2');
                 localStorage.removeItem('paper_calc_targets_v2');
-            }
-        },
-        calcYield(item) {
-            return 100 - (item.ash || 0) - (item.moisture || 0) - (item.loss || 0) + this.targetAsh + this.targetMoisture;
-        },
-        calcConsumption(item) {
-            const y = this.calcYield(item);
-            return y <= 0 ? 0 : 1000 / (y / 100);
-        },
-        calcYieldCost(item) {
-            const y = this.calcYield(item);
-            return y <= 0 ? 0 : (item.price || 0) / (y / 100);
-        },
-        calcTotal(item) {
-            return this.calcYieldCost(item) + (item.elec || 0);
-        },
-        formatNum(num, fixed) {
-            return Number(num || 0).toFixed(fixed);
-        }
-    }
-}).mount('#app');
-</script>
-</body>
-</html>                </div>
-                <div class="text-right shrink-0">
-                    <div class="text-[10px] text-gray-400 leading-none">综合成本(元/吨)</div>
-                    <div class="text-xl font-black text-red-600 leading-tight">{{ formatNum(calcTotal(item), 0) }}</div>
-                </div>
-            </div>
-
-            <!-- 参数修改区 -->
-            <div class="px-2.5 py-2">
-                <div class="grid grid-cols-4 gap-1.5 mb-1.5">
-                    <div class="col-span-2">
-                        <label class="text-[10px] text-gray-500">采购价</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.price"
-                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-800 font-bold">
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-500">电耗</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.elec"
-                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-800 font-bold">
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-500">综合流失%</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.loss"
-                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-700">
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-500">灰分%</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.ash"
-                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-700">
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-500">水分%</label>
-                        <input type="number" inputmode="decimal" v-model.number="item.moisture"
-                               class="w-full bg-gray-50 border border-gray-200 compact-input text-gray-700">
-                    </div>
-                    <div class="col-span-2 flex items-end">
-                        <div class="w-full grid grid-cols-3 gap-1 bg-blue-50 border border-blue-100 rounded-lg px-1 py-1 text-center">
-                            <div>
-                                <div class="text-[9px] text-blue-600/80">得率%</div>
-                                <div class="text-xs font-bold text-blue-950">{{ formatNum(calcYield(item), 1) }}</div>
-                            </div>
-                            <div>
-                                <div class="text-[9px] text-blue-600/80">吨纸消耗</div>
-                                <div class="text-xs font-bold text-blue-950">{{ formatNum(calcConsumption(item), 0) }}</div>
-                            </div>
-                            <div>
-                                <div class="text-[9px] text-blue-600/80">得率成本</div>
-                                <div class="text-xs font-bold text-blue-950">{{ formatNum(calcYieldCost(item), 0) }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-const { createApp } = Vue;
-
-const DEFAULT_MATERIALS = [
-    { category: '白纸类', name: '混合白', ash: 31.0, moisture: 12.0, loss: 1.0, price: 2160, elec: 60 },
-    { category: '白纸类', name: '国杂', ash: 25.0, moisture: 12.0, loss: 4.0, price: 2150, elec: 60 },
-    { category: '白纸类', name: '混合国杂', ash: 25.0, moisture: 12.0, loss: 4.0, price: 2150, elec: 60 },
-    { category: '白纸类', name: '低白双胶杂纸', ash: 26.0, moisture: 12.0, loss: 1.0, price: 2150, elec: 60 },
-    { category: '白纸类', name: '工厂书边纸', ash: 27.5, moisture: 12.0, loss: 1.0, price: 2010, elec: 60 },
-    { category: '白纸类', name: '无碳废纸', ash: 21.0, moisture: 12.0, loss: 4.5, price: 2030, elec: 60 },
-    { category: '白纸类', name: '印花纸', ash: 9.3, moisture: 14.0, loss: 4.5, price: 2030, elec: 60 },
-    { category: '白纸类', name: '保密局浆', ash: 22.0, moisture: 10.0, loss: 1.0, price: 1740, elec: 60 },
-    { category: '黄板类', name: '坑卡', ash: 24.0, moisture: 12.0, loss: 14.0, price: 1880, elec: 60 },
-    { category: '黄板类', name: '箱板纸A', ash: 22.0, moisture: 12.0, loss: 10.0, price: 2000, elec: 60 },
-    { category: '黄板类', name: '箱板纸特级', ash: 19.0, moisture: 12.0, loss: 6.0, price: 2170, elec: 60 },
-    { category: '湿浆类', name: '本色竹浆', ash: 5.0, moisture: 10.0, loss: 2.0, price: 2570, elec: 90 },
-    { category: '湿浆类', name: '自制中温浆', ash: 3.5, moisture: 8.0, loss: 25.0, price: 1920, elec: 219 },
-    { category: '湿浆类', name: '中温湿浆', ash: 3.5, moisture: 10.0, loss: 2.0, price: 2550, elec: 60 },
-];
-
-createApp({
-    data() {
-        return {
-            targetAsh: 15,
-            targetMoisture: 8,
-            materials: JSON.parse(JSON.stringify(DEFAULT_MATERIALS))
-        }
-    },
-    mounted() {
-        const savedData = localStorage.getItem('paper_calc_materials');
-        const savedTargets = localStorage.getItem('paper_calc_targets');
-        if (savedData) { try { this.materials = JSON.parse(savedData); } catch(e) {} }
-        if (savedTargets) {
-            try {
-                const t = JSON.parse(savedTargets);
-                this.targetAsh = t.ash;
-                this.targetMoisture = t.moisture;
-            } catch(e) {}
-        }
-    },
-    watch: {
-        materials: {
-            handler(v) { localStorage.setItem('paper_calc_materials', JSON.stringify(v)); },
-            deep: true
-        },
-        targetAsh() { this.saveTargets(); },
-        targetMoisture() { this.saveTargets(); }
-    },
-    methods: {
-        saveTargets() {
-            localStorage.setItem('paper_calc_targets', JSON.stringify({
-                ash: this.targetAsh, moisture: this.targetMoisture
-            }));
-        },
-        resetToDefault() {
-            if (confirm('确定恢复原始默认值？')) {
-                this.targetAsh = 15;
-                this.targetMoisture = 8;
-                this.materials = JSON.parse(JSON.stringify(DEFAULT_MATERIALS));
-                localStorage.removeItem('paper_calc_materials');
-                localStorage.removeItem('paper_calc_targets');
             }
         },
         calcYield(item) {
