@@ -20,22 +20,6 @@
             position: fixed; inset: 0; background: rgba(0,0,0,0.5);
             display: flex; justify-content: center; align-items: center; z-index: 100;
         }
-        .sort-btn {
-            width: 22px; height: 18px;
-            border-radius: 4px;
-            border: 1px solid #cbd5e1;
-            background: #f8fafc;
-            color: #334155;
-            font-size: 11px;
-            line-height: 1;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .sort-btn:disabled {
-            opacity: 0.3;
-        }
     </style>
 </head>
 <body>
@@ -46,14 +30,14 @@
         <div class="px-2 pt-1.5 pb-1.5">
             <div class="flex justify-between items-center mb-1">
                 <a href="home.html" class="text-[11px] bg-blue-700 px-2 py-0.5 rounded text-blue-100 border border-blue-400/30">← 工具箱</a>
-                <h1 class="text-sm font-bold">42g瓦楞纸成本</h1>
+                <h1 class="text-sm font-bold">42g瓦楞纸成本 <span class="text-[10px] bg-blue-800 px-1 rounded text-yellow-300">v3.0</span></h1>
                 <div class="flex gap-1">
                     <button @click="openAddModal" class="text-[11px] bg-green-500 px-2 py-0.5 rounded border border-green-400/30 font-bold">➕</button>
                     <button @click="resetToDefault" class="text-[11px] bg-blue-500/90 px-2 py-0.5 rounded border border-blue-400/30">重置</button>
                 </div>
             </div>
             <div class="flex justify-between items-center text-[11px] bg-blue-700/50 px-2 py-1 rounded">
-                <span class="opacity-90">目标参数 · 可上下移动排序</span>
+                <span class="opacity-90">目标参数</span>
                 <div class="flex items-center gap-2">
                     <label class="flex items-center gap-1">
                         <span class="opacity-80">灰分%</span>
@@ -72,34 +56,40 @@
 
     <!-- 卡片列表 -->
     <div class="px-1.5 space-y-1.5">
-        <div v-for="(item, index) in materials" :key="item.name + '-' + index"
-             class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden relative">
+        <div v-for="(item, index) in materials" :key="index"
+             class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
 
-            <!-- 右侧操作：上移/下移/删除 -->
-            <div class="absolute top-1 right-1 z-10 flex flex-col gap-0.5 items-end">
-                <div class="flex gap-0.5">
-                    <button class="sort-btn" :disabled="index === 0" @click="moveUp(index)" title="上移">↑</button>
-                    <button class="sort-btn" :disabled="index === materials.length - 1" @click="moveDown(index)" title="下移">↓</button>
-                    <button @click="deleteItem(index)"
-                            class="w-[22px] h-[18px] bg-red-100 text-red-600 rounded text-[11px] font-bold leading-none flex items-center justify-center"
-                            title="删除">×</button>
-                </div>
-            </div>
+            <!-- 卡片头部：序号 + 上下移按钮 + 分类 + 名称 + 综合成本 + 删除 -->
+            <div class="flex justify-between items-center px-2 py-1 bg-gray-50 border-b border-gray-100">
+                <div class="flex items-center gap-1 min-w-0">
+                    <!-- 序号 -->
+                    <span class="text-[10px] text-gray-400 font-bold w-3 text-center">{{ index + 1 }}</span>
+                    
+                    <!-- 醒目的 ▲ ▼ 移动按钮 -->
+                    <div class="flex gap-0.5 shrink-0">
+                        <button @click="moveUp(index)" :disabled="index === 0"
+                                class="w-5 h-5 bg-gray-200 disabled:opacity-20 active:bg-blue-400 active:text-white rounded flex items-center justify-center text-[10px] font-bold text-gray-700 border border-gray-300">▲</button>
+                        <button @click="moveDown(index)" :disabled="index === materials.length - 1"
+                                class="w-5 h-5 bg-gray-200 disabled:opacity-20 active:bg-blue-400 active:text-white rounded flex items-center justify-center text-[10px] font-bold text-gray-700 border border-gray-300">▼</button>
+                    </div>
 
-            <!-- 头部 -->
-            <div class="flex justify-between items-center px-2 py-1 bg-gray-50 border-b border-gray-100 pr-20">
-                <div class="min-w-0 flex items-center gap-1.5">
-                    <span class="text-[9px] text-gray-400 font-mono w-4">{{ index + 1 }}</span>
-                    <span class="text-[9px] font-bold text-blue-600 bg-blue-100 px-1 py-0.5 rounded leading-none">{{ item.category }}</span>
+                    <!-- 标签与名称 -->
+                    <span class="text-[9px] font-bold text-blue-600 bg-blue-100 px-1 py-0.5 rounded leading-none shrink-0">{{ item.category }}</span>
                     <span class="text-[13px] font-bold text-gray-800 truncate">{{ item.name }}</span>
                 </div>
-                <div class="text-right shrink-0">
-                    <span class="text-[9px] text-gray-400">综合成本 </span>
-                    <span class="text-base font-black text-red-600">{{ formatNum(calcTotal(item), 0) }}</span>
+
+                <!-- 右侧：成本与删除按钮 -->
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <div class="text-right">
+                        <span class="text-[9px] text-gray-400">综合 </span>
+                        <span class="text-sm font-black text-red-600">{{ formatNum(calcTotal(item), 0) }}</span>
+                    </div>
+                    <button @click="deleteItem(index)"
+                            class="w-5 h-5 bg-red-100 text-red-600 active:bg-red-500 active:text-white rounded-full text-xs font-bold flex items-center justify-center">×</button>
                 </div>
             </div>
 
-            <!-- 参数 -->
+            <!-- 参数区域 -->
             <div class="px-1.5 py-1.5">
                 <div class="grid grid-cols-6 gap-1 mb-1">
                     <div>
@@ -231,8 +221,8 @@ createApp({
     },
     mounted() {
         try {
-            const savedData = localStorage.getItem('paper_calc_materials_v2');
-            const savedTargets = localStorage.getItem('paper_calc_targets_v2');
+            const savedData = localStorage.getItem('paper_calc_materials_v3');
+            const savedTargets = localStorage.getItem('paper_calc_targets_v3');
             if (savedData) this.materials = JSON.parse(savedData);
             if (savedTargets) {
                 const t = JSON.parse(savedTargets);
@@ -243,7 +233,7 @@ createApp({
     },
     watch: {
         materials: {
-            handler(v) { localStorage.setItem('paper_calc_materials_v2', JSON.stringify(v)); },
+            handler(v) { localStorage.setItem('paper_calc_materials_v3', JSON.stringify(v)); },
             deep: true
         },
         targetAsh() { this.saveTargets(); },
@@ -251,26 +241,19 @@ createApp({
     },
     methods: {
         saveTargets() {
-            localStorage.setItem('paper_calc_targets_v2', JSON.stringify({
+            localStorage.setItem('paper_calc_targets_v3', JSON.stringify({
                 ash: this.targetAsh, moisture: this.targetMoisture
             }));
         },
         moveUp(index) {
             if (index <= 0) return;
-            const arr = this.materials;
-            const tmp = arr[index - 1];
-            arr[index - 1] = arr[index];
-            arr[index] = tmp;
-            // 触发响应式
-            this.materials = arr.slice();
+            const item = this.materials.splice(index, 1)[0];
+            this.materials.splice(index - 1, 0, item);
         },
         moveDown(index) {
             if (index >= this.materials.length - 1) return;
-            const arr = this.materials;
-            const tmp = arr[index + 1];
-            arr[index + 1] = arr[index];
-            arr[index] = tmp;
-            this.materials = arr.slice();
+            const item = this.materials.splice(index, 1)[0];
+            this.materials.splice(index + 1, 0, item);
         },
         openAddModal() {
             this.newItem = { category: '白纸类', name: '', ash: 20, moisture: 12, loss: 3, price: 2000, elec: 60 };
@@ -295,8 +278,8 @@ createApp({
                 this.targetAsh = 15;
                 this.targetMoisture = 8;
                 this.materials = JSON.parse(JSON.stringify(DEFAULT_MATERIALS));
-                localStorage.removeItem('paper_calc_materials_v2');
-                localStorage.removeItem('paper_calc_targets_v2');
+                localStorage.removeItem('paper_calc_materials_v3');
+                localStorage.removeItem('paper_calc_targets_v3');
             }
         },
         calcYield(item) {
