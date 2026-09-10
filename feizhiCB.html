@@ -20,6 +20,22 @@
             position: fixed; inset: 0; background: rgba(0,0,0,0.5);
             display: flex; justify-content: center; align-items: center; z-index: 100;
         }
+        .sort-btn {
+            width: 22px; height: 18px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #334155;
+            font-size: 11px;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sort-btn:disabled {
+            opacity: 0.3;
+        }
     </style>
 </head>
 <body>
@@ -37,7 +53,7 @@
                 </div>
             </div>
             <div class="flex justify-between items-center text-[11px] bg-blue-700/50 px-2 py-1 rounded">
-                <span class="opacity-90">目标参数</span>
+                <span class="opacity-90">目标参数 · 可上下移动排序</span>
                 <div class="flex items-center gap-2">
                     <label class="flex items-center gap-1">
                         <span class="opacity-80">灰分%</span>
@@ -56,14 +72,24 @@
 
     <!-- 卡片列表 -->
     <div class="px-1.5 space-y-1.5">
-        <div v-for="(item, index) in materials" :key="index"
+        <div v-for="(item, index) in materials" :key="item.name + '-' + index"
              class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden relative">
 
-            <button @click="deleteItem(index)"
-                    class="absolute top-1 right-1 w-4 h-4 bg-red-100 text-red-600 rounded-full text-[10px] font-bold leading-none z-10 flex items-center justify-center">×</button>
+            <!-- 右侧操作：上移/下移/删除 -->
+            <div class="absolute top-1 right-1 z-10 flex flex-col gap-0.5 items-end">
+                <div class="flex gap-0.5">
+                    <button class="sort-btn" :disabled="index === 0" @click="moveUp(index)" title="上移">↑</button>
+                    <button class="sort-btn" :disabled="index === materials.length - 1" @click="moveDown(index)" title="下移">↓</button>
+                    <button @click="deleteItem(index)"
+                            class="w-[22px] h-[18px] bg-red-100 text-red-600 rounded text-[11px] font-bold leading-none flex items-center justify-center"
+                            title="删除">×</button>
+                </div>
+            </div>
 
-            <div class="flex justify-between items-center px-2 py-1 bg-gray-50 border-b border-gray-100 pr-6">
+            <!-- 头部 -->
+            <div class="flex justify-between items-center px-2 py-1 bg-gray-50 border-b border-gray-100 pr-20">
                 <div class="min-w-0 flex items-center gap-1.5">
+                    <span class="text-[9px] text-gray-400 font-mono w-4">{{ index + 1 }}</span>
                     <span class="text-[9px] font-bold text-blue-600 bg-blue-100 px-1 py-0.5 rounded leading-none">{{ item.category }}</span>
                     <span class="text-[13px] font-bold text-gray-800 truncate">{{ item.name }}</span>
                 </div>
@@ -73,6 +99,7 @@
                 </div>
             </div>
 
+            <!-- 参数 -->
             <div class="px-1.5 py-1.5">
                 <div class="grid grid-cols-6 gap-1 mb-1">
                     <div>
@@ -228,6 +255,23 @@ createApp({
                 ash: this.targetAsh, moisture: this.targetMoisture
             }));
         },
+        moveUp(index) {
+            if (index <= 0) return;
+            const arr = this.materials;
+            const tmp = arr[index - 1];
+            arr[index - 1] = arr[index];
+            arr[index] = tmp;
+            // 触发响应式
+            this.materials = arr.slice();
+        },
+        moveDown(index) {
+            if (index >= this.materials.length - 1) return;
+            const arr = this.materials;
+            const tmp = arr[index + 1];
+            arr[index + 1] = arr[index];
+            arr[index] = tmp;
+            this.materials = arr.slice();
+        },
         openAddModal() {
             this.newItem = { category: '白纸类', name: '', ash: 20, moisture: 12, loss: 3, price: 2000, elec: 60 };
             this.showAddModal = true;
@@ -247,7 +291,7 @@ createApp({
             }
         },
         resetToDefault() {
-            if (confirm('确定恢复原始默认值？自定义原料会被清空！')) {
+            if (confirm('确定恢复原始默认值？顺序与自定义原料都会重置！')) {
                 this.targetAsh = 15;
                 this.targetMoisture = 8;
                 this.materials = JSON.parse(JSON.stringify(DEFAULT_MATERIALS));
