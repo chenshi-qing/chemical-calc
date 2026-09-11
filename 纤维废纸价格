@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>华泰废纸纤维价值计算器 V3.0</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    padding:16px;
+    background:#f3f5f7;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",
+                 "Microsoft YaHei",Arial,sans-serif;
+    color:#222;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+}
+
+h1{
+    font-size:24px;
+    margin:5px 0 4px;
+}
+
+.subtitle{
+    color:#666;
+    font-size:14px;
+    margin-bottom:16px;
+}
+
+.card{
+    background:#fff;
+    border-radius:12px;
+    padding:18px;
+    margin-bottom:14px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+
+h2{
+    font-size:18px;
+    margin:0 0 14px;
+}
+
+h3{
+    font-size:15px;
+    margin:16px 0 8px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+label{
+    display:block;
+    font-size:13px;
+    color:#555;
+    margin-bottom:4px;
+}
+
+input,select{
+    width:100%;
+    height:42px;
+    padding:8px 10px;
+    border:1px solid #d5d9dd;
+    border-radius:7px;
+    font-size:16px;
+    background:#fff;
+}
+
+button{
+    width:100%;
+    height:46px;
+    border:0;
+    border-radius:8px;
+    background:#1565c0;
+    color:#fff;
+    font-size:17px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+button:active{
+    transform:scale(.99);
+}
+
+.result-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.result-item{
+    background:#f6f7f8;
+    border-radius:8px;
+    padding:12px;
+}
+
+.result-label{
+    color:#666;
+    font-size:13px;
+}
+
+.result-value{
+    font-size:20px;
+    font-weight:700;
+    margin-top:4px;
+}
+
+.highlight{
+    background:#eaf3ff;
+}
+
+.warning{
+    background:#fff7e6;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+}
+
+th,td{
+    padding:9px 6px;
+    border-bottom:1px solid #eee;
+    text-align:right;
+}
+
+th:first-child,
+td:first-child{
+    text-align:left;
+}
+
+.small{
+    font-size:12px;
+    color:#777;
+    line-height:1.6;
+}
+
+.formula{
+    background:#f7f7f7;
+    padding:12px;
+    border-radius:8px;
+    font-size:13px;
+    line-height:1.8;
+    overflow:auto;
+}
+
+@media(max-width:600px){
+    .grid,
+    .result-grid{
+        grid-template-columns:1fr;
+    }
+
+    h1{
+        font-size:21px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>华泰废纸纤维价值计算器 V3.0</h1>
+
+<div class="subtitle">
+有效纤维 + 有效灰分 + Stickies/DCS污染成本
+</div>
+
+
+<!-- ================= 基准原料 ================= -->
+
+<div class="card">
+
+<h2>① 国杂基准</h2>
+
+<div class="grid">
+
+<div>
+<label>国杂采购价（元/吨）</label>
+<input id="basePrice" type="number" value="2300">
+</div>
+
+<div>
+<label>国杂灰分（%）</label>
+<input id="baseAsh" type="number" value="27">
+</div>
+
+<div>
+<label>国杂制浆得率（%）</label>
+<input id="baseYield" type="number" value="95">
+</div>
+
+<div>
+<label>国杂有效灰分利用率（%）</label>
+<input id="baseAshRetention" type="number" value="75">
+</div>
+
+<div>
+<label>国杂污染成本（元/吨废纸）</label>
+<input id="basePollutionCost" type="number" value="0">
+</div>
+
+<div>
+<label>国杂有效灰分价值（元/吨灰分）</label>
+<input id="ashValue" type="number" value="2300">
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ================= 目标原料 ================= -->
+
+<div class="card">
+
+<h2>② 目标废纸</h2>
+
+<select id="preset" onchange="loadPreset()">
+
+<option value="国杂">国杂</option>
+<option value="热敏纸">热敏纸</option>
+<option value="无碳纸">无碳废纸</option>
+<option value="印花纸">转移印花纸</option>
+<option value="自定义">自定义</option>
+
+</select>
+
+
+<div class="grid">
+
+<div>
+<label>实际采购价（元/吨）</label>
+<input id="targetPrice" type="number" value="2000">
+</div>
+
+<div>
+<label>废纸灰分（%）</label>
+<input id="ash" type="number">
+</div>
+
+<div>
+<label>制浆得率（%）</label>
+<input id="yield" type="number">
+</div>
+
+<div>
+<label>有效灰分利用率（%）</label>
+<input id="ashRetention" type="number">
+</div>
+
+<div>
+<label>涂层/有机物比例（%）</label>
+<input id="organic" type="number">
+</div>
+
+<div>
+<label>Stickies污染成本（元/吨废纸）</label>
+<input id="stickiesCost" type="number">
+</div>
+
+<div>
+<label>DCS污染成本（元/吨废纸）</label>
+<input id="dcsCost" type="number">
+</div>
+
+<div>
+<label>其他处理成本（元/吨废纸）</label>
+<input id="otherCost" type="number">
+</div>
+
+</div>
+
+</div>
+
+
+<button onclick="calculate()">
+开始计算
+</button>
+
+
+<!-- ================= 结果 ================= -->
+
+<div class="card">
+
+<h2>③ 计算结果</h2>
+
+<div class="result-grid">
+
+<div class="result-item">
+<div class="result-label">有效纤维率</div>
+<div class="result-value" id="fiberRate">—</div>
+</div>
+
+<div class="result-item">
+<div class="result-label">有效纤维量</div>
+<div class="result-value" id="fiberKg">—</div>
+</div>
+
+<div class="result-item">
+<div class="result-label">有效灰分量</div>
+<div class="result-value" id="ashKg">—</div>
+</div>
+
+<div class="result-item">
+<div class="result-label">有效灰分价值</div>
+<div class="result-value" id="ashMoney">—</div>
+</div>
+
+<div class="result-item highlight">
+<div class="result-label">综合价值</div>
+<div class="result-value" id="totalValue">—</div>
+</div>
+
+<div class="result-item highlight">
+<div class="result-label">理论合理采购价</div>
+<div class="result-value" id="fairPrice">—</div>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ================= 成本分解 ================= -->
+
+<div class="card">
+
+<h2>④ 价值分解</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>项目</th>
+<th>结果</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+<td>有效纤维价值</td>
+<td id="fiberValue">—</td>
+</tr>
+
+<tr>
+<td>有效灰分价值</td>
+<td id="ashValueResult">—</td>
+</tr>
+
+<tr>
+<td>Stickies成本</td>
+<td id="stickiesResult">—</td>
+</tr>
+
+<tr>
+<td>DCS成本</td>
+<td id="dcsResult">—</td>
+</tr>
+
+<tr>
+<td>其他处理成本</td>
+<td id="otherResult">—</td>
+</tr>
+
+<tr>
+<td><strong>综合价值</strong></td>
+<td><strong id="totalValue2">—</strong></td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<!-- ================= 对比 ================= -->
+
+<div class="card">
+
+<h2>⑤ 与国杂基准比较</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>指标</th>
+<th>目标原料</th>
+<th>国杂</th>
+<th>差异</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+<td>有效纤维率</td>
+<td id="compareFiber">—</td>
+<td id="baseFiberShow">—</td>
+<td id="fiberDiff">—</td>
+</tr>
+
+<tr>
+<td>有效灰分</td>
+<td id="compareAsh">—</td>
+<td id="baseAshShow">—</td>
+<td id="ashDiff">—</td>
+</tr>
+
+<tr>
+<td>综合价值指数</td>
+<td id="valueIndex">—</td>
+<td>100</td>
+<td id="indexDiff">—</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<!-- ================= 计算逻辑 ================= -->
+
+<div class="card">
+
+<h2>⑥ 计算逻辑</h2>
+
+<div class="formula">
+
+<strong>① 有效纤维率</strong><br>
+
+有效纤维率 =
+(100 − 灰分 − 有机物) × 制浆得率 ÷ 100
+
+<br><br>
+
+<strong>② 有效纤维价值</strong><br>
+
+有效纤维价值 =
+有效纤维量 × 国杂单位有效纤维价值
+
+<br><br>
+
+<strong>③ 有效灰分</strong><br>
+
+有效灰分 =
+废纸灰分 × 有效灰分利用率
+
+<br><br>
+
+<strong>④ 有效灰分价值</strong><br>
+
+有效灰分价值 =
+有效灰分量 × 灰分单价
+
+<br><br>
+
+<strong>⑤ 综合价值</strong><br>
+
+综合价值 =
+有效纤维价值
++
+有效灰分价值
+−
+Stickies成本
+−
+DCS成本
+−
+其他处理成本
+
+<br><br>
+
+<strong>⑥ 理论合理采购价</strong><br>
+
+理论合理采购价 =
+综合价值 × 国杂采购价 ÷ 国杂综合价值
+
+</div>
+
+<p class="small">
+注意：热敏纸、无碳纸、印花纸的“有机物比例”和“有效灰分利用率”目前属于模型参数，
+不是实验室直接测得的固定值。建议后续用华泰实际灰分、污泥、白水和成纸数据校正。
+</p >
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   默认参数
+   ===================================================== */
+
+const presets = {
+
+    "国杂":{
+        ash:27,
+        organic:0,
+        yield:95,
+        ashRetention:75,
+        stickies:0,
+        dcs:0,
+        other:0
+    },
+
+    "热敏纸":{
+        ash:22,
+        organic:12,
+        yield:94,
+        ashRetention:35,
+        stickies:35,
+        dcs:15,
+        other:5
+    },
+
+    "无碳纸":{
+        ash:18,
+        organic:8,
+        yield:95,
+        ashRetention:50,
+        stickies:20,
+        dcs:12,
+        other:3
+    },
+
+    "印花纸":{
+        ash:9,
+        organic:5,
+        yield:95,
+        ashRetention:45,
+        stickies:15,
+        dcs:8,
+        other:2
+    }
+
+};
+
+
+/* =====================================================
+   自动加载参数
+   ===================================================== */
+
+function loadPreset(){
+
+    let name=document.getElementById("preset").value;
+
+    if(!presets[name]) return;
+
+    let p=presets[name];
+
+    document.getElementById("ash").value=p.ash;
+    document.getElementById("organic").value=p.organic;
+    document.getElementById("yield").value=p.yield;
+    document.getElementById("ashRetention").value=p.ashRetention;
+    document.getElementById("stickiesCost").value=p.stickies;
+    document.getElementById("dcsCost").value=p.dcs;
+    document.getElementById("otherCost").value=p.other;
+
+}
+
+
+/* =====================================================
+   主计算
+   ===================================================== */
+
+function calculate(){
+
+    /* ---------- 基准 ---------- */
+
+    const basePrice =
+        Number(document.getElementById("basePrice").value);
+
+    const baseAsh =
+        Number(document.getElementById("baseAsh").value);
+
+    const baseYield =
+        Number(document.getElementById("baseYield").value);
+
+    const baseAshRetention =
+        Number(document.getElementById("baseAshRetention").value);
+
+    const basePollutionCost =
+        Number(document.getElementById("basePollutionCost").value);
+
+    const ashValuePerTon =
+        Number(document.getElementById("ashValue").value);
+
+
+    /* ---------- 目标 ---------- */
+
+    const targetAsh =
+        Number(document.getElementById("ash").value);
+
+    const targetOrganic =
+        Number(document.getElementById("organic").value);
+
+    const targetYield =
+        Number(document.getElementById("yield").value);
+
+    const targetAshRetention =
+        Number(document.getElementById("ashRetention").value);
+
+    const stickiesCost =
+        Number(document.getElementById("stickiesCost").value);
+
+    const dcsCost =
+        Number(document.getElementById("dcsCost").value);
+
+    const otherCost =
+        Number(document.getElementById("otherCost").value);
+
+
+    /* =================================================
+       国杂有效纤维
+       ================================================= */
+
+    const baseFiberRate =
+        ((100-baseAsh)/100)
+        *
+        (baseYield/100);
+
+
+    const baseFiberKg =
+        baseFiberRate*1000;
+
+
+    /* =================================================
+       国杂有效灰分
+       ================================================= */
+
+    const baseEffectiveAshKg =
+        1000
+        *
+        (baseAsh/100)
+        *
+        (baseAshRetention/100);
+
+
+    /* =================================================
+       国杂单位价值
+       ================================================= */
+
+    const baseAshMoney =
+        baseEffectiveAshKg
+        *
+        (ashValuePerTon/1000);
+
+
+    const baseFiberMoney =
+        basePrice
+        -
+        baseAshMoney
+        +
+        basePollutionCost;
+
+
+    /*
+       国杂综合价值：
+
+       这里将国杂采购价作为基准价值。
+       因此后面的目标原料会按照价值比例反推价格。
+    */
+
+    const baseTotalValue =
+        baseFiberMoney
+        +
+        baseAshMoney
+        -
+        basePollutionCost;
+
+
+    /* =================================================
+       目标有效纤维
+       ================================================= */
+
+    const targetFiberRate =
+        ((100-targetAsh-targetOrganic)/100)
+        *
+        (targetYield/100);
+
+
+    const targetFiberKg =
+        targetFiberRate*1000;
+
+
+    /* =================================================
+       目标有效灰分
+       ================================================= */
+
+    const targetEffectiveAshKg =
+        1000
+        *
+        (targetAsh/100)
+        *
+        (targetAshRetention/100);
+
+
+    /* =================================================
+       目标纤维价值
+       ================================================= */
+
+    const targetFiberMoney =
+        targetFiberKg
+        *
+        (baseFiberMoney/baseFiberKg);
+
+
+    /* =================================================
+       目标灰分价值
+       ================================================= */
+
+    const targetAshMoney =
+        targetEffectiveAshKg
+        *
+        (ashValuePerTon/1000);
+
+
+    /* =================================================
+       污染成本
+       ================================================= */
+
+    const totalPollution =
+        stickiesCost
+        +
+        dcsCost
+        +
+        otherCost;
+
+
+    /* =================================================
+       综合价值
+       ================================================= */
+
+    const totalValue =
+        targetFiberMoney
+        +
+        targetAshMoney
+        -
+        totalPollution;
+
+
+    /* =================================================
+       合理采购价
+       ================================================= */
+
+    const fairPrice =
+        totalValue;
+
+
+    /* =================================================
+       价值指数
+       ================================================= */
+
+    const valueIndex =
+        (totalValue/basePrice)*100;
+
+
+    /* =================================================
+       页面显示
+       ================================================= */
+
+    document.getElementById("fiberRate").innerText =
+        (targetFiberRate*100).toFixed(1)+" %";
+
+    document.getElementById("fiberKg").innerText =
+        targetFiberKg.toFixed(0)+" kg";
+
+    document.getElementById("ashKg").innerText =
+        targetEffectiveAshKg.toFixed(1)+" kg";
+
+    document.getElementById("ashMoney").innerText =
+        targetAshMoney.toFixed(0)+" 元";
+
+
+    document.getElementById("totalValue").innerText =
+        totalValue.toFixed(0)+" 元/吨";
+
+    document.getElementById("fairPrice").innerText =
+        fairPrice.toFixed(0)+" 元/吨";
+
+
+    document.getElementById("fiberValue").innerText =
+        targetFiberMoney.toFixed(0)+" 元";
+
+    document.getElementById("ashValueResult").innerText =
+        targetAshMoney.toFixed(0)+" 元";
+
+    document.getElementById("stickiesResult").innerText =
+        "-"+stickiesCost.toFixed(0)+" 元";
+
+    document.getElementById("dcsResult").innerText =
+        "-"+dcsCost.toFixed(0)+" 元";
+
+    document.getElementById("otherResult").innerText =
+        "-"+otherCost.toFixed(0)+" 元";
+
+    document.getElementById("totalValue2").innerText =
+        totalValue.toFixed(0)+" 元/吨";
+
+
+    document.getElementById("compareFiber").innerText =
+        (targetFiberRate*100).toFixed(1)+"%";
+
+    document.getElementById("baseFiberShow").innerText =
+        (baseFiberRate*100).toFixed(1)+"%";
+
+    document.getElementById("fiberDiff").innerText =
+        ((targetFiberRate-baseFiberRate)*100).toFixed(1)+"个百分点";
+
+
+    document.getElementById("compareAsh").innerText =
+        targetEffectiveAshKg.toFixed(1)+" kg";
+
+    document.getElementById("baseAshShow").innerText =
+        baseEffectiveAshKg.toFixed(1)+" kg";
+
+    document.getElementById("ashDiff").innerText =
+        (targetEffectiveAshKg-baseEffectiveAshKg).toFixed(1)+" kg";
+
+
+    document.getElementById("valueIndex").innerText =
+        valueIndex.toFixed(1);
+
+    document.getElementById("indexDiff").innerText =
+        (valueIndex-100).toFixed(1);
+
+
+}
+
+
+/* 默认加载 */
+
+loadPreset();
+
+</script>
+
+</body>
+</html>
