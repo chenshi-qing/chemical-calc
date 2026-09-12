@@ -3,91 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>计算工具箱</title>
+    <title>造纸原料及成本计算工具箱</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 动态激光扫描效果 */
+        @keyframes laser-scan {
+            0% { top: 2%; opacity: 0.3; }
+            50% { top: 88%; opacity: 1; }
+            100% { top: 2%; opacity: 0.3; }
+        }
+        .scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #38bdf8, #34d399, transparent);
+            box-shadow: 0 0 10px #38bdf8, 0 0 18px #34d399;
+            animation: laser-scan 2.4s ease-in-out infinite;
+            z-index: 20;
+        }
+
+        /* 呼吸发光高亮 */
+        .pulse-badge {
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(244, 63, 94, 0.8); }
+        }
+
+        /* 二维码光晕边框 */
+        .qr-gradient-border {
+            background: linear-gradient(135deg, #f43f5e, #06b6d4, #10b981);
+            padding: 3px;
+            border-radius: 1.25rem;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 p-5">
-    <div class="max-w-md mx-auto">
-        <div class="text-center mb-6 mt-2">
-            <h1 class="text-2xl font-black text-gray-800">计算工具箱</h1>
-            <p class="text-gray-500 text-sm mt-1">请选择你要使用的计算器</p>
+<body class="bg-slate-900 text-slate-800 antialiased min-h-screen p-4 pb-12 flex flex-col justify-between selection:bg-rose-500 selection:text-white">
+    
+    <div class="max-w-md mx-auto w-full space-y-4">
+        <!-- 头部 Banner -->
+        <div class="text-center pt-3 pb-2">
+            <div class="inline-flex items-center gap-2 bg-slate-800/80 border border-slate-700/60 px-3 py-1 rounded-full text-xs text-slate-300 font-medium mb-3 shadow-inner">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                造纸与原料成本算法库 v2.0
+            </div>
+            <h1 class="text-2xl font-black text-white tracking-tight flex items-center justify-center gap-2">
+                计算工具箱
+            </h1>
+            <p class="text-slate-400 text-xs mt-1">精准·高效·造纸行业专业核算套件</p>
         </div>
 
+        <!-- 计算器入口列表 -->
         <div class="space-y-3">
+
             <!-- 1. 瓦楞纸 -->
-            <a href="feizhiCB.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
-                <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 bg-blue-100 text-blue-700 font-black rounded-xl flex items-center justify-center text-lg">瓦</div>
-                    <div>
-                        <div class="font-bold text-gray-900 text-sm">42g 瓦楞纸原料成本</div>
-                        <div class="text-xs text-gray-400 mt-0.5">灰分 / 得率 / 综合成本</div>
+            <a href="feizhiCB.html" class="group block relative overflow-hidden bg-white/95 rounded-2xl p-4 shadow-lg border border-slate-100 active:scale-[0.98] transition-all duration-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-900 text-base">42g 瓦楞纸原料成本</div>
+                            <p class="text-xs text-slate-500 mt-0.5">灰分 / 得率 / 综合成本精算</p>
+                        </div>
                     </div>
+                    <svg class="w-5 h-5 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </div>
             </a>
 
-            <!-- 2. 工艺及需求 -->
-            <a href="原料工艺及需求.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
-                <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 bg-cyan-100 text-cyan-700 font-black rounded-xl flex items-center justify-center text-lg">工</div>
-                    <div>
-                        <div class="font-bold text-gray-900 text-sm">原料工艺及需求</div>
-                        <div class="text-xs text-gray-400 mt-0.5">配比 / 价格 / 得率汇总</div>
+            <!-- 2. 原料工艺及需求 -->
+            <a href="原料工艺及需求.html" class="group block relative overflow-hidden bg-white/95 rounded-2xl p-4 shadow-lg border border-slate-100 active:scale-[0.98] transition-all duration-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-900 text-base">原料工艺及需求</div>
+                            <p class="text-xs text-slate-500 mt-0.5">浆种配比 / 价格 / 综合得率汇总</p>
+                        </div>
                     </div>
+                    <svg class="w-5 h-5 text-slate-300 group-hover:text-cyan-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </div>
             </a>
 
-            <!-- 3. 纤维废纸价格 (新增) -->
-            <a href="纤维废纸价格.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
-                <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 bg-rose-100 text-rose-700 font-black rounded-xl flex items-center justify-center text-lg">纤</div>
-                    <div>
-                        <div class="font-bold text-gray-900 text-sm">纤维废纸价格</div>
-                        <div class="text-xs text-gray-400 mt-0.5">纤维含量 / 单价价值对比</div>
+            <!-- 3. 纤维废纸价格 (高亮卡片) -->
+            <a href="纤维废纸价格.html" class="group block relative overflow-hidden bg-gradient-to-r from-rose-500/10 via-white to-white rounded-2xl p-4 shadow-xl border-2 border-rose-500/60 active:scale-[0.98] transition-all duration-200">
+                <div class="absolute top-0 right-0">
+                    <span class="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-sm pulse-badge tracking-wider uppercase">
+                        全新上线
+                    </span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shadow-lg shadow-rose-500/30 group-hover:scale-105 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                        </div>
+                        <div>
+                            <div class="font-extrabold text-slate-900 text-base">纤维废纸价格</div>
+                            <p class="text-xs text-rose-600 font-medium mt-0.5">有效纤维含量 / 真实性价比对比</p>
+                        </div>
                     </div>
+                    <svg class="w-5 h-5 text-rose-500 group-hover:translate-x-1 transition-transform mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </div>
             </a>
 
-            <!-- 4. 化学品 -->
-            <a href="index.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
-                <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 bg-purple-100 text-purple-700 font-black rounded-xl flex items-center justify-center text-lg">化</div>
-                    <div>
-                        <div class="font-bold text-gray-900 text-sm">化学品计算器</div>
-                        <div class="text-xs text-gray-400 mt-0.5">原主页 · index.html</div>
+            <!-- 4. 化学品计算器 -->
+            <a href="index.html" class="group block relative overflow-hidden bg-white/95 rounded-2xl p-4 shadow-lg border border-slate-100 active:scale-[0.98] transition-all duration-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 text-white flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-900 text-base">化学品计算器</div>
+                            <p class="text-xs text-slate-500 mt-0.5">湿部化学品 / 添加量与成本</p>
+                        </div>
                     </div>
+                    <svg class="w-5 h-5 text-slate-300 group-hover:text-purple-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </div>
             </a>
 
-            <!-- 5. 废纸采购 -->
-            <a href="waste-paper-cost-calculator.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
-                <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 bg-green-100 text-green-700 font-black rounded-xl flex items-center justify-center text-lg">废</div>
-                    <div>
-                        <div class="font-bold text-gray-900 text-sm">废纸采购成本</div>
-                        <div class="text-xs text-gray-400 mt-0.5">常规采购价格核算</div>
+            <!-- 5. 废纸采购成本 -->
+            <a href="waste-paper-cost-calculator.html" class="group block relative overflow-hidden bg-white/95 rounded-2xl p-4 shadow-lg border border-slate-100 active:scale-[0.98] transition-all duration-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-900 text-base">废纸采购成本</div>
+                            <p class="text-xs text-slate-500 mt-0.5">常规国废/外废采购价格核算</p>
+                        </div>
                     </div>
+                    <svg class="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </div>
             </a>
 
             <!-- 6. 湿浆核算 -->
-            <a href="pulp-cost-calculator.html" class="block bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 active:scale-[0.98] transition">
-                <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 bg-orange-100 text-orange-700 font-black rounded-xl flex items-center justify-center text-lg">浆</div>
-                    <div>
-                        <div class="font-bold text-gray-900 text-sm">湿浆 / 自制浆核算</div>
-                        <div class="text-xs text-gray-400 mt-0.5">电耗与流失率分析</div>
+            <a href="pulp-cost-calculator.html" class="group block relative overflow-hidden bg-white/95 rounded-2xl p-4 shadow-lg border border-slate-100 active:scale-[0.98] transition-all duration-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-900 text-base">湿浆 / 自制浆核算</div>
+                            <p class="text-xs text-slate-500 mt-0.5">电耗、水耗与流失率综合分析</p>
+                        </div>
                     </div>
+                    <svg class="w-5 h-5 text-slate-300 group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </div>
             </a>
+
         </div>
 
-        <p class="text-center text-gray-400 text-xs mt-8">
-            iPhone 15 Pro Max 专属优化界面
-        </p>
+        <!-- 🔥【超高辨识度】动态激光取景器二维码卡片 -->
+        <div class="mt-8 bg-gradient-to-b from-slate-800 to-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+            
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-5">
+                
+                <!-- 二维码渲染主体 -->
+                <div class="relative group cursor-pointer">
+                    <!-- 彩虹炫光外框 -->
+                    <div class="qr-gradient-border shadow-lg shadow-cyan-500/20">
+                        <!-- 二维码白底容器 -->
+                        <div class="bg-white p-2.5 rounded-xl relative overflow-hidden flex items-center justify-center">
+                            
+                            <!-- 动态扫描线 -->
+                            <div class="scan-line"></div>
+
+                            <!-- 取景框 4 个高亮霓虹角标 -->
+                            <div class="absolute top-1 left-1 w-3 h-3 border-t-2 border-l-2 border-cyan-500"></div>
+                            <div class="absolute top-1 right-1 w-3 h-3 border-t-2 border-r-2 border-cyan-500"></div>
+                            <div class="absolute bottom-1 left-1 w-3 h-3 border-b-2 border-l-2 border-cyan-500"></div>
+                            <div class="absolute bottom-1 right-1 w-3 h-3 border-b-2 border-r-2 border-cyan-500"></div>
+
+                            <!-- 您上传的二维码图片 -->
+                            <img src="https://v0-resource-storage.s3.amazonaws.com/qrcode.png" alt="扫码快速访问" class="w-24 h-24 rounded-md object-contain relative z-10">
+                        </div>
+                    </div>
+
+                    <!-- 悬浮小光标指示 -->
+                    <div class="absolute -bottom-2 -right-2 bg-rose-500 text-white p-1 rounded-full shadow-md z-30">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                </div>
+
+                <!-- 扫码说明信息 -->
+                <div class="text-center sm:text-left space-y-1.5 flex-1">
+                    <div class="inline-flex items-center gap-1.5 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 px-2.5 py-0.5 rounded-full text-[11px] font-bold">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        官方快捷通道
+                    </div>
+                    <h3 class="text-white text-base font-extrabold tracking-tight">
+                        微信扫码 · 即刻算成本
+                    </h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">
+                        手机截图保存在相册，或直接使用微信 / 浏览器“扫一扫”快速使用。
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
     </div>
+
+    <!-- 页脚 -->
+    <div class="text-center text-slate-500 text-[11px] mt-6">
+        已为 iPhone 15 Pro Max 及移动端优化 · 适配 Safe Area
+    </div>
+
 </body>
 </html>
-
-
-
-
