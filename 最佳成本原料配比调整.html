@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>原料配比与吨纸成本核算系统</title>
+    <title>造纸原料配比与浆钙综合成本核算系统</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -11,13 +11,20 @@
             margin: 0; padding: 20px; color: #333;
         }
         .container {
-            max-width: 900px; margin: 0 auto; background: #fff;
+            max-width: 950px; margin: 0 auto; background: #fff;
             padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; }
+        
+        .section-title { font-size: 16px; font-weight: bold; color: #2980b9; margin-top: 20px; border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-bottom: 15px;}
+        
         .params-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px; margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 6px;
+            gap: 15px; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #3498db;
+        }
+        .params-grid-calcium {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px; margin-bottom: 25px; background: #fdfbf7; padding: 15px; border-radius: 6px; border-left: 4px solid #f39c12;
         }
         .param-item { display: flex; flex-direction: column; }
         .param-item label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
@@ -30,18 +37,18 @@
         td input[type="number"] { width: 80px; padding: 6px; text-align: center; }
         
         .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; color: #fff; transition: 0.2s; }
-        .btn-blue { background: #3498db; } .btn-blue:hover { background: #2980b9; }
         .btn-green { background: #2ecc71; margin-bottom: 15px; } .btn-green:hover { background: #27ae60; }
         .btn-red { background: #e74c3c; padding: 6px 10px;} .btn-red:hover { background: #c0392b; }
         .btn-icon { background: #95a5a6; padding: 4px 8px; margin: 0 2px; } .btn-icon:hover { background: #7f8c8d; }
         
         .summary-card {
-            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;
             background: #e8f6f3; padding: 20px; border-radius: 8px; border-left: 5px solid #1abc9c;
         }
         .summary-item { display: flex; flex-direction: column; }
         .summary-item span { font-size: 13px; color: #555; font-weight: bold; }
-        .summary-item strong { font-size: 24px; color: #16a085; margin-top: 5px; }
+        .summary-item strong { font-size: 22px; margin-top: 5px; }
+        .text-green { color: #16a085; } .text-red { color: #e74c3c; } .text-blue { color: #2980b9; } .text-orange { color: #d35400; }
         
         .locked-row { background-color: #fafafa; }
         input[type="checkbox"] { transform: scale(1.3); cursor: pointer; }
@@ -50,12 +57,13 @@
 <body>
 
 <div class="container">
-    <h2>原料配比与吨纸成本核算系统</h2>
+    <h2>造纸原料配比与综合成本核算系统</h2>
 
-    <!-- 全局控制参数 -->
+    <!-- 纤维全局控制参数 -->
+    <div class="section-title">▶ 第一部分：纤维主料控制</div>
     <div class="params-grid">
         <div class="param-item">
-            <label>实际吨纸单耗 (kg/t)</label>
+            <label>纤维吨纸单耗 (kg/t)</label>
             <input type="number" id="unitConsumption" value="1082" onchange="calculate()">
         </div>
         <div class="param-item">
@@ -63,7 +71,7 @@
             <input type="text" value="1铲 (约23吨)">
         </div>
         <div class="param-item">
-            <label>卸料塔灰分控制 (%)</label>
+            <label>卸料塔灰分 (%)</label>
             <input type="text" value="24.0">
         </div>
         <div class="param-item">
@@ -72,6 +80,28 @@
         </div>
     </div>
 
+    <!-- 浆钙控制参数 -->
+    <div class="section-title">▶ 第二部分：浆钙 (填料) 独立核算</div>
+    <div class="params-grid-calcium">
+        <div class="param-item">
+            <label>成纸目标灰分 (%)</label>
+            <input type="number" step="0.1" id="ashTarget" value="17.5" onchange="calculate()">
+        </div>
+        <div class="param-item">
+            <label>浆钙得率/留着率 (%)</label>
+            <input type="number" step="0.1" id="calciumYield" value="48.0" onchange="calculate()">
+        </div>
+        <div class="param-item">
+            <label>浆钙价格 (元/吨)</label>
+            <input type="number" id="calciumPrice" value="245" onchange="calculate()">
+        </div>
+        <div class="param-item" style="background:#fff3e0; padding:10px; border-radius:4px;">
+            <label>💡 浆钙消耗量 (kg/t)</label>
+            <strong id="calciumConsOut" style="font-size:18px; color:#d35400; margin-top:5px;">0.0</strong>
+        </div>
+    </div>
+
+    <div class="section-title">▶ 第三部分：纤维配比结构表</div>
     <button class="btn btn-green" onclick="addRow()">+ 新增原料品种</button>
 
     <!-- 原料配比表 -->
@@ -83,7 +113,7 @@
                 <th width="15%">单价 (元/kg)</th>
                 <th width="20%">配比 (%)</th>
                 <th width="10%">锁定</th>
-                <th width="15%">小计单价</th>
+                <th width="15%">加权贡献</th>
                 <th width="10%">操作</th>
             </tr>
         </thead>
@@ -93,24 +123,29 @@
     </table>
 
     <!-- 成本核算结果 -->
+    <div class="section-title">▶ 第四部分：吨纸综合成本预测</div>
     <div class="summary-card">
         <div class="summary-item">
-            <span>总配比 (需为100%)</span>
-            <strong id="totalRatio" style="color: #2c3e50;">100.00%</strong>
+            <span>纤维配比总和 (需100%)</span>
+            <strong id="totalRatio" class="text-blue">100.00%</strong>
         </div>
         <div class="summary-item">
-            <span>加权平均单价 (元/kg)</span>
-            <strong id="avgPrice">0.000</strong>
+            <span>纤维加权单价 (元/kg)</span>
+            <strong id="avgPrice" class="text-blue">0.000</strong>
         </div>
         <div class="summary-item">
-            <span>预测吨纸原料成本 (元/t)</span>
-            <strong id="totalCost" style="color: #e74c3c;">0.00</strong>
+            <span>浆钙附加成本 (元/t)</span>
+            <strong id="calciumCostOut" class="text-orange">0.00</strong>
+        </div>
+        <div class="summary-item">
+            <span>预测吨纸总成本 (元/t)</span>
+            <strong id="totalCost" class="text-red">0.00</strong>
         </div>
     </div>
 </div>
 
 <script>
-    // 初始默认数据 (基于 9月11日 1铲污泥的调整方案基准)
+    // 初始默认数据
     let materials = [
         { id: 1, name: "高白竹浆", price: 2.27, ratio: 13.0, locked: false },
         { id: 2, name: "中温湿浆", price: 2.26, ratio: 9.0, locked: false },
@@ -167,7 +202,6 @@
         const delta = newValue - oldRatio;
         materials[changedIndex].ratio = newValue;
 
-        // 找出所有未锁定且不是当前正在修改的原料
         let adjustableIndexes = [];
         let adjustableSum = 0;
         
@@ -178,7 +212,6 @@
             }
         }
 
-        // 如果其他都锁定了，则拒绝修改并恢复原值
         if (adjustableIndexes.length === 0 && delta !== 0) {
             alert("其他所有原料已锁定，无法自动调平！请先解锁部分原料。");
             materials[changedIndex].ratio = oldRatio;
@@ -186,30 +219,25 @@
             return;
         }
 
-        // 按当前比例分摊差异 (Proportional distribution)
         for (let i = 0; i < adjustableIndexes.length; i++) {
             let adjIdx = adjustableIndexes[i];
             if (adjustableSum === 0) {
-                // 如果其他项全为 0，则平均分配
                 materials[adjIdx].ratio -= delta / adjustableIndexes.length;
             } else {
                 materials[adjIdx].ratio -= delta * (materials[adjIdx].ratio / adjustableSum);
             }
-            // 防止出现负数，极少极端情况下的容错
             if (materials[adjIdx].ratio < 0) materials[adjIdx].ratio = 0; 
         }
 
-        // 强制归一化一次，消除浮点数精度误差，确保总和绝对等于 100
         let currentTotal = materials.reduce((sum, m) => sum + m.ratio, 0);
         let error = 100 - currentTotal;
         if (Math.abs(error) > 0.001 && adjustableIndexes.length > 0) {
-            materials[adjustableIndexes[0]].ratio += error; // 将微小误差补给第一个可调项
+            materials[adjustableIndexes[0]].ratio += error; 
         }
 
         renderTable();
     }
 
-    // 向上/向下移动行
     function moveRow(index, direction) {
         if (index + direction < 0 || index + direction >= materials.length) return;
         const temp = materials[index];
@@ -218,61 +246,62 @@
         renderTable();
     }
 
-    // 新增行
     function addRow() {
-        materials.push({
-            id: idCounter++,
-            name: "新增原料",
-            price: 1.50,
-            ratio: 0.0,
-            locked: false
-        });
+        materials.push({ id: idCounter++, name: "新增原料", price: 1.50, ratio: 0.0, locked: false });
         renderTable();
     }
 
-    // 删除行
     function deleteRow(index) {
-        if (materials.length <= 1) {
-            alert("至少保留一种原料！");
-            return;
-        }
-        // 删除前，将其比例分配给其他项以保持 100%
+        if (materials.length <= 1) { alert("至少保留一种原料！"); return; }
         let deletedRatio = materials[index].ratio;
         materials[index].ratio = 0; 
-        if (deletedRatio > 0) {
-            // 复用 handleRatioChange 逻辑把它的比例降为0
-            handleRatioChange(index, 0);
-        }
+        if (deletedRatio > 0) handleRatioChange(index, 0);
         materials.splice(index, 1);
         renderTable();
     }
 
-    // 计算汇总数据
+    // 综合计算
     function calculate() {
+        // 1. 纤维部分计算
         let totalRatio = 0;
         let avgPrice = 0;
-        let consumption = parseFloat(document.getElementById("unitConsumption").value) || 0;
+        let fiberConsumption = parseFloat(document.getElementById("unitConsumption").value) || 0;
 
         materials.forEach(mat => {
             totalRatio += mat.ratio;
             avgPrice += (mat.price * mat.ratio / 100);
         });
-
-        let totalCost = avgPrice * consumption;
-
-        // UI 渲染更新
-        document.getElementById("totalRatio").innerText = totalRatio.toFixed(1) + "%";
         
-        // 如果总和偏离 100% 变红报警
-        document.getElementById("totalRatio").style.color = Math.abs(totalRatio - 100) > 0.1 ? "#e74c3c" : "#2c3e50";
+        let fiberCost = avgPrice * fiberConsumption;
+
+        // 2. 浆钙部分计算
+        let ashTarget = parseFloat(document.getElementById("ashTarget").value) || 0;
+        let calciumYield = parseFloat(document.getElementById("calciumYield").value) || 1; // 防除0
+        let calciumPriceTon = parseFloat(document.getElementById("calciumPrice").value) || 0;
+        
+        // 公式：消耗量 = (1000 * 灰分%) / 得率%
+        let calciumCons = (1000 * (ashTarget / 100)) / (calciumYield / 100);
+        let calciumCost = calciumCons * (calciumPriceTon / 1000);
+
+        // 3. 总成本 = 纤维成本 + 浆钙成本
+        let totalCost = fiberCost + calciumCost;
+
+        // 4. UI 渲染更新
+        document.getElementById("totalRatio").innerText = totalRatio.toFixed(1) + "%";
+        document.getElementById("totalRatio").style.color = Math.abs(totalRatio - 100) > 0.1 ? "#e74c3c" : "#2980b9";
         
         document.getElementById("avgPrice").innerText = avgPrice.toFixed(4);
+        
+        // 渲染浆钙结果
+        document.getElementById("calciumConsOut").innerText = calciumCons.toFixed(1);
+        document.getElementById("calciumCostOut").innerText = calciumCost.toFixed(2);
+        
+        // 渲染总成本
         document.getElementById("totalCost").innerText = totalCost.toFixed(2);
     }
 
     // 初始化运行
     window.onload = () => renderTable();
-
 </script>
 </body>
 </html>
