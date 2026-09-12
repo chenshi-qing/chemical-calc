@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原料配比与吨纸成本核算系统</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0; padding: 20px; color: #333;
+        }
+        .container {
+            max-width: 900px; margin: 0 auto; background: #fff;
+            padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; }
+        .params-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px; margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 6px;
+        }
+        .param-item { display: flex; flex-direction: column; }
+        .param-item label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .param-item input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: #ecf0f1; font-weight: 600; font-size: 14px; color: #2c3e50; }
+        td input[type="text"] { width: 120px; padding: 6px; }
+        td input[type="number"] { width: 80px; padding: 6px; text-align: center; }
+        
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; color: #fff; transition: 0.2s; }
+        .btn-blue { background: #3498db; } .btn-blue:hover { background: #2980b9; }
+        .btn-green { background: #2ecc71; margin-bottom: 15px; } .btn-green:hover { background: #27ae60; }
+        .btn-red { background: #e74c3c; padding: 6px 10px;} .btn-red:hover { background: #c0392b; }
+        .btn-icon { background: #95a5a6; padding: 4px 8px; margin: 0 2px; } .btn-icon:hover { background: #7f8c8d; }
+        
+        .summary-card {
+            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;
+            background: #e8f6f3; padding: 20px; border-radius: 8px; border-left: 5px solid #1abc9c;
+        }
+        .summary-item { display: flex; flex-direction: column; }
+        .summary-item span { font-size: 13px; color: #555; font-weight: bold; }
+        .summary-item strong { font-size: 24px; color: #16a085; margin-top: 5px; }
+        
+        .locked-row { background-color: #fafafa; }
+        input[type="checkbox"] { transform: scale(1.3); cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>原料配比与吨纸成本核算系统</h2>
+
+    <!-- 全局控制参数 -->
+    <div class="params-grid">
+        <div class="param-item">
+            <label>实际吨纸单耗 (kg/t)</label>
+            <input type="number" id="unitConsumption" value="1082" onchange="calculate()">
+        </div>
+        <div class="param-item">
+            <label>污泥添加量 (铲/参考)</label>
+            <input type="text" value="1铲 (约23吨)">
+        </div>
+        <div class="param-item">
+            <label>卸料塔灰分控制 (%)</label>
+            <input type="text" value="24.0">
+        </div>
+        <div class="param-item">
+            <label>出前灰分控制 (%)</label>
+            <input type="text" value="22.5 - 23.0">
+        </div>
+    </div>
+
+    <button class="btn btn-green" onclick="addRow()">+ 新增原料品种</button>
+
+    <!-- 原料配比表 -->
+    <table>
+        <thead>
+            <tr>
+                <th width="10%">排序</th>
+                <th width="20%">原料名称</th>
+                <th width="15%">单价 (元/kg)</th>
+                <th width="20%">配比 (%)</th>
+                <th width="10%">锁定</th>
+                <th width="15%">小计单价</th>
+                <th width="10%">操作</th>
+            </tr>
+        </thead>
+        <tbody id="materialBody">
+            <!-- JS 动态渲染内容 -->
+        </tbody>
+    </table>
+
+    <!-- 成本核算结果 -->
+    <div class="summary-card">
+        <div class="summary-item">
+            <span>总配比 (需为100%)</span>
+            <strong id="totalRatio" style="color: #2c3e50;">100.00%</strong>
+        </div>
+        <div class="summary-item">
+            <span>加权平均单价 (元/kg)</span>
+            <strong id="avgPrice">0.000</strong>
+        </div>
+        <div class="summary-item">
+            <span>预测吨纸原料成本 (元/t)</span>
+            <strong id="totalCost" style="color: #e74c3c;">0.00</strong>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 初始默认数据 (基于 9月11日 1铲污泥的调整方案基准)
+    let materials = [
+        { id: 1, name: "高白竹浆", price: 2.27, ratio: 13.0, locked: false },
+        { id: 2, name: "中温湿浆", price: 2.26, ratio: 9.0, locked: false },
+        { id: 3, name: "废箱板纸黄皮", price: 1.77, ratio: 31.0, locked: false },
+        { id: 4, name: "纯纸箱裁边", price: 1.93, ratio: 25.0, locked: false },
+        { id: 5, name: "国杂A", price: 1.89, ratio: 5.0, locked: false },
+        { id: 6, name: "废无碳纸", price: 1.67, ratio: 4.0, locked: false },
+        { id: 7, name: "印花纸", price: 1.80, ratio: 5.0, locked: false },
+        { id: 8, name: "混合白纸边", price: 1.93, ratio: 5.0, locked: false },
+        { id: 9, name: "保密局浆", price: 1.54, ratio: 3.0, locked: false }
+    ];
+
+    let idCounter = 10;
+
+    // 渲染表格
+    function renderTable() {
+        const tbody = document.getElementById("materialBody");
+        tbody.innerHTML = "";
+        
+        materials.forEach((mat, index) => {
+            const tr = document.createElement("tr");
+            if(mat.locked) tr.className = "locked-row";
+            
+            tr.innerHTML = `
+                <td>
+                    <button class="btn btn-icon" onclick="moveRow(${index}, -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
+                    <button class="btn btn-icon" onclick="moveRow(${index}, 1)" ${index === materials.length - 1 ? 'disabled' : ''}>↓</button>
+                </td>
+                <td><input type="text" value="${mat.name}" onchange="updateField(${index}, 'name', this.value)"></td>
+                <td><input type="number" step="0.01" value="${mat.price.toFixed(2)}" onchange="updateField(${index}, 'price', this.value)"></td>
+                <td><input type="number" step="0.1" value="${mat.ratio.toFixed(1)}" onchange="handleRatioChange(${index}, this.value)"></td>
+                <td><input type="checkbox" ${mat.locked ? 'checked' : ''} onchange="updateField(${index}, 'locked', this.checked)"></td>
+                <td>${(mat.price * mat.ratio / 100).toFixed(4)}</td>
+                <td><button class="btn btn-red" onclick="deleteRow(${index})">删除</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        calculate();
+    }
+
+    // 更新基础字段
+    function updateField(index, field, value) {
+        if (field === 'price') value = parseFloat(value) || 0;
+        materials[index][field] = value;
+        renderTable();
+    }
+
+    // 核心算法：自动分配比例
+    function handleRatioChange(changedIndex, newValue) {
+        newValue = parseFloat(newValue) || 0;
+        if (newValue < 0) newValue = 0;
+        
+        const oldRatio = materials[changedIndex].ratio;
+        const delta = newValue - oldRatio;
+        materials[changedIndex].ratio = newValue;
+
+        // 找出所有未锁定且不是当前正在修改的原料
+        let adjustableIndexes = [];
+        let adjustableSum = 0;
+        
+        for (let i = 0; i < materials.length; i++) {
+            if (i !== changedIndex && !materials[i].locked) {
+                adjustableIndexes.push(i);
+                adjustableSum += materials[i].ratio;
+            }
+        }
+
+        // 如果其他都锁定了，则拒绝修改并恢复原值
+        if (adjustableIndexes.length === 0 && delta !== 0) {
+            alert("其他所有原料已锁定，无法自动调平！请先解锁部分原料。");
+            materials[changedIndex].ratio = oldRatio;
+            renderTable();
+            return;
+        }
+
+        // 按当前比例分摊差异 (Proportional distribution)
+        for (let i = 0; i < adjustableIndexes.length; i++) {
+            let adjIdx = adjustableIndexes[i];
+            if (adjustableSum === 0) {
+                // 如果其他项全为 0，则平均分配
+                materials[adjIdx].ratio -= delta / adjustableIndexes.length;
+            } else {
+                materials[adjIdx].ratio -= delta * (materials[adjIdx].ratio / adjustableSum);
+            }
+            // 防止出现负数，极少极端情况下的容错
+            if (materials[adjIdx].ratio < 0) materials[adjIdx].ratio = 0; 
+        }
+
+        // 强制归一化一次，消除浮点数精度误差，确保总和绝对等于 100
+        let currentTotal = materials.reduce((sum, m) => sum + m.ratio, 0);
+        let error = 100 - currentTotal;
+        if (Math.abs(error) > 0.001 && adjustableIndexes.length > 0) {
+            materials[adjustableIndexes[0]].ratio += error; // 将微小误差补给第一个可调项
+        }
+
+        renderTable();
+    }
+
+    // 向上/向下移动行
+    function moveRow(index, direction) {
+        if (index + direction < 0 || index + direction >= materials.length) return;
+        const temp = materials[index];
+        materials[index] = materials[index + direction];
+        materials[index + direction] = temp;
+        renderTable();
+    }
+
+    // 新增行
+    function addRow() {
+        materials.push({
+            id: idCounter++,
+            name: "新增原料",
+            price: 1.50,
+            ratio: 0.0,
+            locked: false
+        });
+        renderTable();
+    }
+
+    // 删除行
+    function deleteRow(index) {
+        if (materials.length <= 1) {
+            alert("至少保留一种原料！");
+            return;
+        }
+        // 删除前，将其比例分配给其他项以保持 100%
+        let deletedRatio = materials[index].ratio;
+        materials[index].ratio = 0; 
+        if (deletedRatio > 0) {
+            // 复用 handleRatioChange 逻辑把它的比例降为0
+            handleRatioChange(index, 0);
+        }
+        materials.splice(index, 1);
+        renderTable();
+    }
+
+    // 计算汇总数据
+    function calculate() {
+        let totalRatio = 0;
+        let avgPrice = 0;
+        let consumption = parseFloat(document.getElementById("unitConsumption").value) || 0;
+
+        materials.forEach(mat => {
+            totalRatio += mat.ratio;
+            avgPrice += (mat.price * mat.ratio / 100);
+        });
+
+        let totalCost = avgPrice * consumption;
+
+        // UI 渲染更新
+        document.getElementById("totalRatio").innerText = totalRatio.toFixed(1) + "%";
+        
+        // 如果总和偏离 100% 变红报警
+        document.getElementById("totalRatio").style.color = Math.abs(totalRatio - 100) > 0.1 ? "#e74c3c" : "#2c3e50";
+        
+        document.getElementById("avgPrice").innerText = avgPrice.toFixed(4);
+        document.getElementById("totalCost").innerText = totalCost.toFixed(2);
+    }
+
+    // 初始化运行
+    window.onload = () => renderTable();
+
+</script>
+</body>
+</html>
